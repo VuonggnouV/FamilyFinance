@@ -1,0 +1,160 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-canvas: #FFFDF5;
+    --bg-card: #FFFFFF;
+    --ink: #2D2A32;
+    --income: #22C55E;
+    --expense: #FF5C6C;
+    --lend: #FFB020;
+    --debt: #9B6BFF;
+    --primary-sky: #38BDF8;
+    --primary-pink: #FF8FAB;
+  }
+
+  body {
+    font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #FFFDF5;
+    background-image: radial-gradient(#2D2A32 0.75px, transparent 0.75px);
+    background-size: 24px 24px;
+    background-position: 0 0;
+    color: #2D2A32;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* Soften polka dot opacity via pseudo overlay */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 253, 245, 0.91);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: 'Baloo 2', cursive, sans-serif;
+  }
+}
+
+/* Tabular numbers mandatory for all VND money amounts */
+.money-num, .tabular-nums {
+  font-family: 'Baloo 2', cursive, sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Cozy Toybox / Soft Neo-Brutalism Card */
+.toy-card {
+  background-color: #FFFFFF;
+  border: 2px solid #2D2A32;
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 0 #2D2A32;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.toy-card-lg {
+  background-color: #FFFFFF;
+  border: 2.5px solid #2D2A32;
+  border-radius: 1.75rem;
+  box-shadow: 4px 4px 0 #2D2A32;
+}
+
+/* Tactile 3D Squishy Buttons */
+.toy-btn {
+  font-family: 'Baloo 2', cursive, sans-serif;
+  font-weight: 700;
+  border: 2px solid #2D2A32;
+  border-radius: 1rem;
+  box-shadow: 0 4px 0 #2D2A32;
+  transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.12s ease, background-color 0.15s ease;
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.toy-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #2D2A32;
+}
+
+.toy-btn:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 #2D2A32;
+}
+
+.toy-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Toy Inputs */
+.toy-input {
+  width: 100%;
+  background-color: #FFFDF5;
+  border: 2px solid #2D2A32;
+  border-radius: 1rem;
+  padding: 0.65rem 0.9rem;
+  font-weight: 700;
+  color: #2D2A32;
+  transition: box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.toy-input:focus {
+  outline: none;
+  background-color: #FFFFFF;
+  box-shadow: 0 3px 0 #2D2A32;
+}
+
+/* Gentle animations respecting prefers-reduced-motion */
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes bellShake {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-8deg); }
+  40% { transform: rotate(8deg); }
+  60% { transform: rotate(-5deg); }
+  80% { transform: rotate(5deg); }
+}
+
+.animate-float {
+  animation: floatSlow 3s ease-in-out infinite;
+}
+
+.animate-bell {
+  animation: bellShake 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float, .animate-bell {
+    animation: none !important;
+  }
+  .toy-btn, .toy-card {
+    transition: none !important;
+  }
+}
+
+/* Custom sleek scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #FFF9EC;
+}
+::-webkit-scrollbar-thumb {
+  background: #D4C5B9;
+  border-radius: 9999px;
+  border: 2px solid #FFF9EC;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2D2A32;
+}

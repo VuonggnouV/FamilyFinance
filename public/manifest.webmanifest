@@ -1,0 +1,19 @@
+{
+  "name": "FamilyFinance - Sổ Chi Tiêu Tổ Ấm",
+  "short_name": "FamilyFinance",
+  "description": "Quản lý chi tiêu cá nhân đa gia đình, tối ưu cho 2 vợ chồng",
+  "start_url": "./#/dashboard",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFFDF5",
+  "theme_color": "#FF8FAB",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

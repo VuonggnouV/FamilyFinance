@@ -1,0 +1,22 @@
+name: Keep Supabase Free Tier Alive
+
+on:
+  schedule:
+    - cron: '0 2 */5 * *'
+  workflow_dispatch:
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          BASE_URL=$(echo "${{ secrets.SUPABASE_URL }}" | sed 's|/rest/v1/*$||' | sed 's|/*$||')
+          if [ -z "$BASE_URL" ]; then
+            BASE_URL="https://hzgmjkhgpfgyjtzshfia.supabase.co"
+          fi
+          API_KEY="${{ secrets.SUPABASE_PUBLISHABLE_KEY }}"
+          if [ -z "$API_KEY" ]; then
+            API_KEY="sb_publishable_AQ_DtpxC7okJA-jKiSPSeA_gTPMUY01"
+          fi
+          curl -f "${BASE_URL}/rest/v1/families?select=id&limit=1" -H "apikey: ${API_KEY}"
