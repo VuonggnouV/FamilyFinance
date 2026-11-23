@@ -24,45 +24,21 @@ import { VndPipe } from './shared/pipes/vnd.pipe';
       <aside
         class="hidden md:flex md:w-72 md:flex-col md:fixed md:inset-y-0 md:left-0 bg-[#FFF9EC] border-r-3 border-[#2D2A32] p-5 z-30 justify-between"
       >
-        <div class="space-y-5">
-          <!-- Brand Logo Sticker + Persistent Invite Code Box -->
-          <div class="p-3.5 rounded-2xl bg-white border-2 border-[#2D2A32] shadow-[0_4px_0_#2D2A32] space-y-2.5">
-            <div class="flex items-center gap-3">
-              <div
-                class="w-12 h-12 rounded-2xl bg-[#FF8FAB] border-2 border-[#2D2A32] flex items-center justify-center text-2xl shrink-0"
-              >
-                🐷
-              </div>
-              <div class="min-w-0">
-                <h1 class="font-display font-extrabold text-xl text-[#2D2A32] truncate leading-tight">
-                  {{ familyService.currentFamily()?.name || 'FamilyFinance' }}
-                </h1>
-                <div class="flex items-center gap-1.5 text-xs font-extrabold text-[#15803D]">
-                  <span class="w-2 h-2 rounded-full bg-[#22C55E] animate-ping"></span>
-                  <span>{{ familyService.members().length }} thành viên kết nối</span>
-                </div>
-              </div>
+        <div class="space-y-6">
+          <!-- Brand Logo Sticker -->
+          <div class="flex items-center gap-3 p-3 rounded-2xl bg-white border-2 border-[#2D2A32] shadow-[0_4px_0_#2D2A32]">
+            <div
+              class="w-12 h-12 rounded-2xl bg-[#FF8FAB] border-2 border-[#2D2A32] flex items-center justify-center text-2xl shrink-0"
+            >
+              🐷
             </div>
-
-            <!-- Always-visible Invite Code Pill on Sidebar -->
-            <div class="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-[#FFF9EC] border-2 border-[#2D2A32]">
-              <div class="min-w-0">
-                <div class="text-[10px] font-extrabold uppercase text-[#2D2A32]/65">
-                  🔑 Mã mời gia đình
-                </div>
-                <div class="font-display font-extrabold text-sm tracking-widest text-[#BE123C] select-all">
-                  {{ familyService.currentFamily()?.invite_code || '---' }}
-                </div>
-              </div>
-              <div class="flex items-center gap-1">
-                <button
-                  type="button"
-                  (click)="copyInviteCode()"
-                  class="px-2 py-1 rounded-lg bg-[#FFB020] hover:bg-[#FFA000] border border-[#2D2A32] font-display font-extrabold text-xs cursor-pointer"
-                  title="Copy mã mời"
-                >
-                  📋 Copy
-                </button>
+            <div class="min-w-0">
+              <h1 class="font-display font-extrabold text-xl text-[#2D2A32] truncate leading-tight">
+                {{ familyService.currentFamily()?.name || 'FamilyFinance' }}
+              </h1>
+              <div class="flex items-center gap-1.5 text-xs font-extrabold text-[#15803D]">
+                <span class="w-2 h-2 rounded-full bg-[#22C55E] animate-ping"></span>
+                <span>{{ familyService.members().length }} thành viên kết nối</span>
               </div>
             </div>
           </div>
@@ -146,18 +122,8 @@ import { VndPipe } from './shared/pipes/vnd.pipe';
             <h1 class="font-display font-extrabold text-base text-[#2D2A32] truncate leading-tight">
               {{ familyService.currentFamily()?.name || 'FamilyFinance' }}
             </h1>
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="money-num text-xs font-extrabold text-[#15803D]">
-                {{ walletService.totalBalance() | vnd }}
-              </span>
-              <button
-                type="button"
-                (click)="copyInviteCode()"
-                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#FEF3C7] border border-[#2D2A32] text-[10px] font-extrabold text-[#B45309] cursor-pointer"
-                title="Bấm để copy mã mời gia đình"
-              >
-                🔑 Mã: {{ familyService.currentFamily()?.invite_code }} 📋
-              </button>
+            <div class="money-num text-xs font-extrabold text-[#15803D]">
+              Két sắt: {{ walletService.totalBalance() | vnd }}
             </div>
           </div>
         </div>
