@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import {
   DebtLoan,
   DebtLoanType,
-  OwnerScope,
   OWNER_SCOPE_META,
 } from '../../core/models/database.models';
 import { DebtLoanService } from '../../core/services/debt-loan.service';
@@ -15,6 +14,7 @@ import {
   VndPipe,
   formatVndInput,
   parseVndInput,
+  appendThreeZeros,
 } from '../../shared/pipes/vnd.pipe';
 
 @Component({
@@ -120,12 +120,6 @@ import {
                   >
                     {{ item.type === 'LEND' ? '🤝 Cho mượn' : '🏦 Khoản nợ' }}
                   </span>
-                  <span
-                    class="px-2.5 py-0.5 rounded-full text-xs font-extrabold border border-[#2D2A32]"
-                    [style.backgroundColor]="ownerMeta[item.actor].badgeBg"
-                  >
-                    {{ ownerMeta[item.actor].emoji }} {{ ownerMeta[item.actor].label }}
-                  </span>
                 </div>
 
                 <h3 class="font-display font-extrabold text-xl text-[#2D2A32] mt-2 flex items-center gap-1.5">
@@ -136,7 +130,7 @@ import {
                 </h3>
 
                 <div class="text-xs font-bold text-[#2D2A32]/70 mt-0.5">
-                  Ví: {{ getWalletName(item.wallet_id) }} • Ngày tạo: {{ item.transaction_date }}
+                  Ví: {{ getWalletNameWithOwner(item.wallet_id) }} • Ngày tạo: {{ item.transaction_date }}
                   @if (item.type === 'DEBT') {
                     <span>
                       • {{ item.affects_balance ? '✅ Có cộng vào tiền tổng' : '⚪ Không cộng tiền tổng' }}
@@ -275,7 +269,7 @@ import {
         }
       </div>
 
-      <!-- MODAL 1: Create / Edit Debt or Loan -->
+      <!-- MODAL 1: Create / Edit Debt or Loan (No Actor Field + .000 button + Instant Close) -->
       @if (formModalOpen()) {
         <div
           class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2D2A32]/60 backdrop-blur-xs overflow-y-auto"
@@ -335,47 +329,47 @@ import {
                   name="principalDisplay"
                   [ngModel]="principalDisplay()"
                   (ngModelChange)="principalDisplay.set(formatVnd($event))"
-                  placeholder="VD: 5.000.000"
+                  placeholder="VD: Nhập 5000 rồi bấm .000 -> 5.000.000"
                   required
                   class="toy-input money-num text-2xl font-extrabold bg-white"
                 />
+                <div class="flex flex-wrap items-center gap-1.5 mt-2">
+                  <button
+                    type="button"
+                    (click)="onAppendZerosPrincipal()"
+                    class="px-3 py-1 text-xs font-extrabold rounded-xl border-2 border-[#2D2A32] bg-[#FFB020] hover:bg-[#FFA000] text-[#2D2A32] shadow-[0_2px_0_#2D2A32] cursor-pointer money-num"
+                  >
+                    .000 (×1000)
+                  </button>
+                  @for (preset of [500000, 1000000, 5000000]; track preset) {
+                    <button
+                      type="button"
+                      (click)="addQuickPrincipal(preset)"
+                      class="px-2.5 py-1 text-xs font-extrabold rounded-xl border border-[#2D2A32] bg-white hover:bg-[#FEF3C7] cursor-pointer money-num"
+                    >
+                      +{{ preset | vnd: false }}
+                    </button>
+                  }
+                </div>
               </div>
 
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label class="block text-xs font-extrabold uppercase text-[#2D2A32]/75 mb-1">
-                    {{ formType() === 'LEND' ? 'Ví xuất tiền cho mượn *' : 'Ví nhận tiền / Ví trả *' }}
-                  </label>
-                  <select
-                    name="walletId"
-                    [ngModel]="walletId()"
-                    (ngModelChange)="onWalletSelect($event)"
-                    required
-                    class="toy-input bg-white"
-                  >
-                    @for (w of walletService.activeWallets(); track w.id) {
-                      <option [value]="w.id">
-                        {{ ownerMeta[w.owner_scope].emoji }} {{ w.name }} ({{ w.current_balance | vnd }})
-                      </option>
-                    }
-                  </select>
-                </div>
-
-                <div>
-                  <label class="block text-xs font-extrabold uppercase text-[#2D2A32]/75 mb-1">
-                    Người thực hiện
-                  </label>
-                  <select
-                    name="actor"
-                    [ngModel]="actor()"
-                    (ngModelChange)="actor.set($event)"
-                    class="toy-input bg-white"
-                  >
-                    <option value="WIFE">🐱 Vợ yêu</option>
-                    <option value="HUSBAND">🐶 Chồng yêu</option>
-                    <option value="SHARED">🐷 Quỹ chung</option>
-                  </select>
-                </div>
+              <div>
+                <label class="block text-xs font-extrabold uppercase text-[#2D2A32]/75 mb-1">
+                  {{ formType() === 'LEND' ? 'Ví xuất tiền cho mượn *' : 'Ví nhận tiền / Ví trả *' }}
+                </label>
+                <select
+                  name="walletId"
+                  [ngModel]="walletId()"
+                  (ngModelChange)="walletId.set($event)"
+                  required
+                  class="toy-input bg-white"
+                >
+                  @for (w of walletService.activeWallets(); track w.id) {
+                    <option [value]="w.id">
+                      {{ ownerMeta[w.owner_scope].emoji }} {{ w.name }} ({{ w.current_balance | vnd }})
+                    </option>
+                  }
+                </select>
               </div>
 
               <!-- MANDATORY TOGGLE SWITCH FOR DEBT: "Cộng vào tiền tổng hiện tại?" mapped to affects_balance -->
@@ -392,7 +386,6 @@ import {
                       Bật nếu khoản vay này giải ngân tiền mặt/chuyển khoản thẳng vào ví của bạn
                     </div>
                   </div>
-                  <!-- Toggle Switch UI -->
                   <button
                     type="button"
                     role="switch"
@@ -451,32 +444,43 @@ import {
               </div>
 
               <div class="flex items-center justify-end gap-2.5 pt-2">
-                <button
-                  type="button"
-                  (click)="formModalOpen.set(false)"
-                  class="toy-btn px-4 py-2.5 bg-white text-sm"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  [disabled]="submitting()"
-                  class="toy-btn px-6 py-2.5 text-sm font-extrabold"
-                  [ngClass]="
-                    formType() === 'LEND'
-                      ? 'bg-[#FFB020] text-[#2D2A32]'
-                      : 'bg-[#9B6BFF] text-white'
-                  "
-                >
-                  {{ submitting() ? '⏳ Đang lưu...' : '💾 Lưu vào sổ' }}
-                </button>
+                @if (savedDone()) {
+                  <button
+                    type="button"
+                    (click)="formModalOpen.set(false)"
+                    class="toy-btn w-full py-3 bg-[#22C55E] text-white text-base font-extrabold"
+                  >
+                    ✅ Đã lưu xong! (Đóng)
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    [disabled]="submitting()"
+                    (click)="formModalOpen.set(false)"
+                    class="toy-btn px-4 py-2.5 bg-white text-sm"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    [disabled]="submitting()"
+                    class="toy-btn px-6 py-2.5 text-sm font-extrabold"
+                    [ngClass]="
+                      formType() === 'LEND'
+                        ? 'bg-[#FFB020] text-[#2D2A32]'
+                        : 'bg-[#9B6BFF] text-white'
+                    "
+                  >
+                    {{ submitting() ? '⏳ Đang lưu...' : '💾 Lưu vào sổ' }}
+                  </button>
+                }
               </div>
             </form>
           </div>
         </div>
       }
 
-      <!-- MODAL 2: Record Repayment (Ghi nhận trả từng đợt / Trả hết phần còn lại) -->
+      <!-- MODAL 2: Record Repayment (Ghi nhận trả từng đợt + .000 button) -->
       @if (repaymentModalOpen() && repayingItem()) {
         <div
           class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2D2A32]/60 backdrop-blur-xs"
@@ -531,6 +535,15 @@ import {
                   required
                   class="toy-input money-num text-2xl font-extrabold text-[#15803D] bg-white"
                 />
+                <div class="flex flex-wrap items-center gap-1.5 mt-2">
+                  <button
+                    type="button"
+                    (click)="onAppendZerosRepay()"
+                    class="px-3 py-1 text-xs font-extrabold rounded-xl border-2 border-[#2D2A32] bg-[#FFB020] hover:bg-[#FFA000] text-[#2D2A32] shadow-[0_2px_0_#2D2A32] cursor-pointer money-num"
+                  >
+                    .000 (×1000)
+                  </button>
+                </div>
               </div>
 
               <div>
@@ -585,27 +598,38 @@ import {
               </div>
 
               <div class="flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  (click)="repaymentModalOpen.set(false)"
-                  class="toy-btn px-4 py-2.5 bg-white text-sm"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  [disabled]="submitting()"
-                  class="toy-btn px-5 py-2.5 bg-[#22C55E] text-white text-sm font-extrabold"
-                >
-                  {{ submitting() ? '⏳ Đang ghi nhận...' : '✅ Xác nhận trả tiền' }}
-                </button>
+                @if (repayDone()) {
+                  <button
+                    type="button"
+                    (click)="repaymentModalOpen.set(false)"
+                    class="toy-btn w-full py-3 bg-[#22C55E] text-white text-base font-extrabold"
+                  >
+                    ✅ Đã ghi nhận xong! (Đóng)
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    [disabled]="submitting()"
+                    (click)="repaymentModalOpen.set(false)"
+                    class="toy-btn px-4 py-2.5 bg-white text-sm"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    [disabled]="submitting()"
+                    class="toy-btn px-5 py-2.5 bg-[#22C55E] text-white text-sm font-extrabold"
+                  >
+                    {{ submitting() ? '⏳ Đang ghi nhận...' : '✅ Xác nhận trả tiền' }}
+                  </button>
+                }
               </div>
             </form>
           </div>
         </div>
       }
 
-      <!-- DRAWER / MODAL 3: Repayment History List (repayments) -->
+      <!-- DRAWER / MODAL 3: Repayment History List -->
       @if (historyDrawerOpen() && historyItem()) {
         <div
           class="fixed inset-0 z-50 flex items-center justify-end bg-[#2D2A32]/60 backdrop-blur-xs"
@@ -642,7 +666,7 @@ import {
                         📅 {{ rep.paid_date }}
                       </div>
                       <div class="text-xs font-bold text-[#2D2A32]/70">
-                        Ví: {{ getWalletName(rep.wallet_id) }}
+                        Ví: {{ getWalletNameWithOwner(rep.wallet_id) }}
                       </div>
                       @if (rep.note) {
                         <div class="text-xs font-semibold text-[#2D2A32]/80 mt-0.5">
@@ -700,12 +724,12 @@ export class DebtsLoansComponent {
   readonly counterparty = signal<string>('');
   readonly principalDisplay = signal<string>('');
   readonly walletId = signal<string>('');
-  readonly actor = signal<OwnerScope>('SHARED');
   readonly affectsBalance = signal<boolean>(true);
   readonly transactionDate = signal<string>(this.todayIso());
   readonly dueDate = signal<string>('');
   readonly note = signal<string>('');
   readonly submitting = signal<boolean>(false);
+  readonly savedDone = signal<boolean>(false);
 
   // Repayment Modal State
   readonly repaymentModalOpen = signal<boolean>(false);
@@ -714,6 +738,7 @@ export class DebtsLoansComponent {
   readonly repayWalletId = signal<string>('');
   readonly repayDate = signal<string>(this.todayIso());
   readonly repayNote = signal<string>('');
+  readonly repayDone = signal<boolean>(false);
 
   // History Drawer State
   readonly historyDrawerOpen = signal<boolean>(false);
@@ -723,8 +748,29 @@ export class DebtsLoansComponent {
     return formatVndInput(val);
   }
 
-  getWalletName(walletId: string): string {
-    return this.walletService.getWalletById(walletId)?.name ?? 'Ví';
+  onAppendZerosPrincipal(): void {
+    const next = appendThreeZeros(this.principalDisplay());
+    if (next) {
+      this.principalDisplay.set(next);
+    }
+  }
+
+  addQuickPrincipal(preset: number): void {
+    const cur = parseVndInput(this.principalDisplay());
+    this.principalDisplay.set(formatVndInput(cur + preset));
+  }
+
+  onAppendZerosRepay(): void {
+    const next = appendThreeZeros(this.repayAmountDisplay());
+    if (next) {
+      this.repayAmountDisplay.set(next);
+    }
+  }
+
+  getWalletNameWithOwner(walletId: string): string {
+    const w = this.walletService.getWalletById(walletId);
+    if (!w) return 'Ví';
+    return `${this.ownerMeta[w.owner_scope].emoji} ${w.name}`;
   }
 
   getRemaining(item: DebtLoan): number {
@@ -751,13 +797,14 @@ export class DebtsLoansComponent {
   }
 
   openCreateModal(): void {
+    this.submitting.set(false);
+    this.savedDone.set(false);
     this.editingItem.set(null);
     this.formType.set(this.activeTab());
     this.counterparty.set('');
     this.principalDisplay.set('');
     const firstW = this.walletService.activeWallets()[0];
     this.walletId.set(firstW?.id ?? '');
-    this.actor.set(firstW?.owner_scope ?? 'SHARED');
     this.affectsBalance.set(true);
     this.transactionDate.set(this.todayIso());
     this.dueDate.set('');
@@ -767,12 +814,13 @@ export class DebtsLoansComponent {
 
   openEditModal(item: DebtLoan): void {
     if (item.is_locked || item.status === 'PAID') return;
+    this.submitting.set(false);
+    this.savedDone.set(false);
     this.editingItem.set(item);
     this.formType.set(item.type);
     this.counterparty.set(item.counterparty);
     this.principalDisplay.set(formatVndInput(item.principal_amount));
     this.walletId.set(item.wallet_id);
-    this.actor.set(item.actor);
     this.affectsBalance.set(Boolean(item.affects_balance));
     this.transactionDate.set(item.transaction_date);
     this.dueDate.set(item.due_date ?? '');
@@ -780,15 +828,9 @@ export class DebtsLoansComponent {
     this.formModalOpen.set(true);
   }
 
-  onWalletSelect(wId: string): void {
-    this.walletId.set(wId);
-    const w = this.walletService.getWalletById(wId);
-    if (w) {
-      this.actor.set(w.owner_scope);
-    }
-  }
-
   async onSaveDebtLoan(): Promise<void> {
+    if (this.submitting() || this.savedDone()) return;
+
     const principal = parseVndInput(this.principalDisplay());
     if (!this.counterparty().trim()) {
       this.toast.show('warning', 'Thiếu tên người! 🤝', 'Hãy nhập tên người mượn hoặc chủ nợ.');
@@ -803,6 +845,9 @@ export class DebtsLoansComponent {
       return;
     }
 
+    const selectedWallet = this.walletService.getWalletById(this.walletId());
+    const derivedActor = selectedWallet?.owner_scope ?? 'SHARED';
+
     this.submitting.set(true);
     try {
       const edit = this.editingItem();
@@ -811,7 +856,7 @@ export class DebtsLoansComponent {
           counterparty: this.counterparty(),
           principal_amount: principal,
           wallet_id: this.walletId(),
-          actor: this.actor(),
+          actor: derivedActor,
           affects_balance:
             this.formType() === 'DEBT' ? this.affectsBalance() : true,
           transaction_date: this.transactionDate(),
@@ -825,7 +870,7 @@ export class DebtsLoansComponent {
           counterparty: this.counterparty(),
           principal_amount: principal,
           wallet_id: this.walletId(),
-          actor: this.actor(),
+          actor: derivedActor,
           affects_balance:
             this.formType() === 'DEBT' ? this.affectsBalance() : true,
           transaction_date: this.transactionDate(),
@@ -838,6 +883,7 @@ export class DebtsLoansComponent {
           `Đã thêm khoản ${this.formType() === 'LEND' ? 'Cho mượn' : 'Nợ'} với ${this.counterparty()}.`
         );
       }
+      this.savedDone.set(true);
       this.formModalOpen.set(false);
     } catch (err: any) {
       this.toast.show('error', 'Không thể lưu! 🚨', err?.message || 'Có lỗi xảy ra.');
@@ -859,6 +905,8 @@ export class DebtsLoansComponent {
   }
 
   openRepaymentModal(item: DebtLoan): void {
+    this.submitting.set(false);
+    this.repayDone.set(false);
     this.repayingItem.set(item);
     this.repayAmountDisplay.set(formatVndInput(this.getRemaining(item)));
     this.repayWalletId.set(item.wallet_id);
@@ -874,6 +922,8 @@ export class DebtsLoansComponent {
   }
 
   async onConfirmRepayment(): Promise<void> {
+    if (this.submitting() || this.repayDone()) return;
+
     const item = this.repayingItem();
     if (!item) return;
     const amount = parseVndInput(this.repayAmountDisplay());
@@ -899,13 +949,12 @@ export class DebtsLoansComponent {
           p_note: this.repayNote() || null,
         });
 
+      this.repayDone.set(true);
       this.repaymentModalOpen.set(false);
 
       if (settled) {
-        // Confetti when finishing a LEND (or settling debt!)
         this.confetti.celebrate();
 
-        // Trigger 10-second Undo Toast that deletes the exact repayments.id just created
         if (repaymentId) {
           this.toast.showUndo(
             item.type === 'LEND'

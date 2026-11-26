@@ -59,7 +59,6 @@ export class TransactionService {
       ]);
 
       if (txRes.error) {
-        // Fallback if created_at column is not present on transactions table
         const fallbackRes = await this.supabase.client
           .from('transactions')
           .select('*')
@@ -107,7 +106,7 @@ export class TransactionService {
     wallet_id: string;
     to_wallet_id?: string | null;
     category_id?: string | null;
-    actor: OwnerScope;
+    actor?: OwnerScope;
     title: string;
     note?: string | null;
     transaction_date: string;
@@ -117,7 +116,7 @@ export class TransactionService {
     const user = this.supabase.currentUser();
     if (!familyId) throw new Error('Chưa chọn gia đình');
 
-    const insertRow = {
+    const baseRow: Record<string, any> = {
       family_id: familyId,
       type: payload.type,
       amount: Math.round(Number(payload.amount)),
@@ -126,7 +125,6 @@ export class TransactionService {
         payload.type === 'TRANSFER' ? payload.to_wallet_id || null : null,
       category_id:
         payload.type === 'TRANSFER' ? null : payload.category_id || null,
-      actor: payload.actor,
       title: payload.title.trim(),
       note: payload.note?.trim() || null,
       transaction_date: payload.transaction_date,
@@ -136,14 +134,31 @@ export class TransactionService {
       created_by: user?.id ?? null,
     };
 
-    const { data, error } = await this.supabase.client
+    // Compatible both before AND after dropping 'actor' column in Supabase
+    let { data, error } = await this.supabase.client
       .from('transactions')
-      .insert(insertRow)
+      .insert(baseRow)
       .select()
       .single();
 
+    if (error && (error.code === '23502' || error.message?.includes('actor'))) {
+      const walletScope =
+        payload.actor ??
+        this.walletService.getWalletById(payload.wallet_id)?.owner_scope ??
+        'SHARED';
+      const retry = await this.supabase.client
+        .from('transactions')
+        .insert({ ...baseRow, actor: walletScope })
+        .select()
+        .single();
+      data = retry.data;
+      error = retry.error;
+    }
+
     if (error) throw error;
-    await Promise.all([this.loadTransactions(), this.walletService.loadWallets()]);
+
+    // Refresh in background so UI modal closes immediately without duplicate taps
+    void Promise.all([this.loadTransactions(), this.walletService.loadWallets()]);
     return this.normalizeTx(data);
   }
 
@@ -155,7 +170,7 @@ export class TransactionService {
       wallet_id: string;
       to_wallet_id: string | null;
       category_id: string | null;
-      actor: OwnerScope;
+      actor?: OwnerScope;
       title: string;
       note: string | null;
       transaction_date: string;
@@ -167,6 +182,8 @@ export class TransactionService {
       ...payload,
       updated_by: user?.id ?? null,
     };
+    delete updateRow['actor'];
+
     if (updateRow['amount'] !== undefined) {
       updateRow['amount'] = Math.round(Number(updateRow['amount']));
     }
@@ -180,7 +197,7 @@ export class TransactionService {
       .eq('id', id);
 
     if (error) throw error;
-    await Promise.all([this.loadTransactions(), this.walletService.loadWallets()]);
+    void Promise.all([this.loadTransactions(), this.walletService.loadWallets()]);
   }
 
   /**
@@ -216,7 +233,7 @@ export class TransactionService {
     );
 
     if (error) throw error;
-    await Promise.all([this.loadTransactions(), this.walletService.loadWallets()]);
+    void Promise.all([this.loadTransactions(), this.walletService.loadWallets()]);
     const row = Array.isArray(data) ? data[0] : data;
     return row ? this.normalizeTx(row) : ({} as Transaction);
   }

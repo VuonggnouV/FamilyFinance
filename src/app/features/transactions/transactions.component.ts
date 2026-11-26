@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import {
   Transaction,
   TxType,
-  OwnerScope,
   OWNER_SCOPE_META,
 } from '../../core/models/database.models';
 import { TransactionService } from '../../core/services/transaction.service';
@@ -70,9 +69,9 @@ import { VndPipe } from '../../shared/pipes/vnd.pipe';
         </div>
       </div>
 
-      <!-- Filter Bar -->
+      <!-- Filter Bar with Apply Button -->
       <div class="toy-card p-4 bg-white space-y-3">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2.5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
           <!-- Search input -->
           <div class="lg:col-span-2">
             <label class="block text-[11px] font-extrabold uppercase text-[#2D2A32]/70 mb-1">
@@ -80,8 +79,8 @@ import { VndPipe } from '../../shared/pipes/vnd.pipe';
             </label>
             <input
               type="text"
-              [ngModel]="searchQuery()"
-              (ngModelChange)="searchQuery.set($event)"
+              [ngModel]="draftSearch()"
+              (ngModelChange)="draftSearch.set($event)"
               placeholder="🔎 Tìm tên món đồ, ghi chú..."
               class="toy-input !py-1.5 !px-3 text-xs bg-[#FFFDF5]"
             />
@@ -93,8 +92,8 @@ import { VndPipe } from '../../shared/pipes/vnd.pipe';
               Loại giao dịch
             </label>
             <select
-              [ngModel]="filterType()"
-              (ngModelChange)="filterType.set($event)"
+              [ngModel]="draftType()"
+              (ngModelChange)="draftType.set($event)"
               class="toy-input !py-1.5 !px-2.5 text-xs bg-[#FFFDF5]"
             >
               <option value="ALL">Tất cả loại</option>
@@ -104,31 +103,14 @@ import { VndPipe } from '../../shared/pipes/vnd.pipe';
             </select>
           </div>
 
-          <!-- Actor -->
-          <div>
-            <label class="block text-[11px] font-extrabold uppercase text-[#2D2A32]/70 mb-1">
-              Người thực hiện
-            </label>
-            <select
-              [ngModel]="filterActor()"
-              (ngModelChange)="filterActor.set($event)"
-              class="toy-input !py-1.5 !px-2.5 text-xs bg-[#FFFDF5]"
-            >
-              <option value="ALL">👨‍👩‍👧 Tất cả</option>
-              <option value="WIFE">🐱 Vợ yêu</option>
-              <option value="HUSBAND">🐶 Chồng yêu</option>
-              <option value="SHARED">🐷 Quỹ chung</option>
-            </select>
-          </div>
-
           <!-- Wallet -->
           <div>
             <label class="block text-[11px] font-extrabold uppercase text-[#2D2A32]/70 mb-1">
               Nguồn tiền / Ví
             </label>
             <select
-              [ngModel]="filterWalletId()"
-              (ngModelChange)="filterWalletId.set($event)"
+              [ngModel]="draftWalletId()"
+              (ngModelChange)="draftWalletId.set($event)"
               class="toy-input !py-1.5 !px-2.5 text-xs bg-[#FFFDF5]"
             >
               <option value="ALL">👛 Tất cả ví</option>
@@ -146,8 +128,8 @@ import { VndPipe } from '../../shared/pipes/vnd.pipe';
               Danh mục
             </label>
             <select
-              [ngModel]="filterCategoryId()"
-              (ngModelChange)="filterCategoryId.set($event)"
+              [ngModel]="draftCategoryId()"
+              (ngModelChange)="draftCategoryId.set($event)"
               class="toy-input !py-1.5 !px-2.5 text-xs bg-[#FFFDF5]"
             >
               <option value="ALL">🏷️ Tất cả danh mục</option>
@@ -157,96 +139,284 @@ import { VndPipe } from '../../shared/pipes/vnd.pipe';
             </select>
           </div>
         </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t-2 border-dashed border-[#2D2A32]/15">
+          <button
+            type="button"
+            (click)="resetFilters()"
+            class="toy-btn px-3.5 py-1.5 bg-white text-xs font-extrabold"
+          >
+            🔄 Đặt lại
+          </button>
+          <button
+            type="button"
+            (click)="applyFilters()"
+            class="toy-btn px-5 py-1.5 bg-[#FFB020] text-[#2D2A32] text-xs font-extrabold"
+          >
+            ✅ Áp dụng lọc
+          </button>
+        </div>
       </div>
 
-      <!-- DESKTOP TABLE (>= 768px): Ngày, Nội dung, Ví/Nguồn, Người, Số tiền, Trạng thái, Thao tác -->
-      <div class="hidden md:block toy-card bg-white overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-[#FFF9EC] border-b-2 border-[#2D2A32] font-display text-xs uppercase tracking-wider text-[#2D2A32]">
-                <th class="py-3.5 px-4">Ngày</th>
-                <th class="py-3.5 px-4">Nội dung & Danh mục</th>
-                <th class="py-3.5 px-4">Ví / Nguồn</th>
-                <th class="py-3.5 px-4">Người</th>
-                <th class="py-3.5 px-4 text-right">Số tiền (VND)</th>
-                <th class="py-3.5 px-4 text-center">Trạng thái</th>
-                <th class="py-3.5 px-4 text-right">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y-2 divide-dashed divide-[#2D2A32]/15 text-sm font-semibold">
-              @for (tx of filteredTransactions(); track tx.id) {
-                <tr
-                  class="hover:bg-[#FFFDF5] transition-colors"
-                  [class.opacity-60]="tx.status === 'RETURNED'"
-                >
-                  <!-- Ngày -->
-                  <td class="py-3.5 px-4 whitespace-nowrap font-bold text-[#2D2A32]">
-                    {{ tx.transaction_date }}
-                  </td>
+      <!-- ======================================================================= -->
+      <!-- COLLAPSIBLE TRANSACTION HISTORY FRAME (KHUNG LỊCH SỬ GIAO DỊCH ĐÓNG/MỞ) -->
+      <!-- ======================================================================= -->
+      <div class="toy-card-lg bg-white overflow-hidden">
+        <!-- Collapsible Header Bar -->
+        <div
+          (click)="historyOpen.set(!historyOpen())"
+          class="p-4 sm:p-5 bg-[#FFF9EC] border-b-2 border-[#2D2A32] flex items-center justify-between gap-3 cursor-pointer select-none hover:bg-[#FEF3C7]/60 transition-colors"
+        >
+          <div class="flex items-center gap-2.5">
+            <span class="text-2xl">📜</span>
+            <div>
+              <h2 class="font-display font-extrabold text-lg sm:text-xl text-[#2D2A32]">
+                Khung Lịch Sử Giao Dịch ({{ filteredTransactions().length }} khoản)
+              </h2>
+              <p class="text-xs font-bold text-[#2D2A32]/70">
+                Bấm vào thanh này để đóng / mở danh sách lịch sử thu chi
+              </p>
+            </div>
+          </div>
 
-                  <!-- Nội dung & Danh mục -->
-                  <td class="py-3.5 px-4">
-                    <div class="flex items-center gap-2.5">
-                      <span
-                        class="w-9 h-9 rounded-xl border-2 border-[#2D2A32] flex items-center justify-center text-lg shrink-0"
-                        [style.backgroundColor]="getCategoryColor(tx)"
+          <button
+            type="button"
+            class="toy-btn px-3.5 py-1.5 bg-white text-xs font-extrabold shrink-0"
+          >
+            {{ historyOpen() ? 'Thu gọn ▲' : 'Mở rộng ▼' }}
+          </button>
+        </div>
+
+        @if (historyOpen()) {
+          <!-- DESKTOP TABLE (>= 768px): Ngày, Nội dung, Ví/Nguồn, Số tiền, Trạng thái, Thao tác -->
+          <div class="hidden md:block overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-[#FFFDF5] border-b-2 border-[#2D2A32] font-display text-xs uppercase tracking-wider text-[#2D2A32]">
+                  <th class="py-3.5 px-4">Ngày</th>
+                  <th class="py-3.5 px-4">Nội dung & Danh mục</th>
+                  <th class="py-3.5 px-4">Ví / Nguồn</th>
+                  <th class="py-3.5 px-4 text-right">Số tiền (VND)</th>
+                  <th class="py-3.5 px-4 text-center">Trạng thái</th>
+                  <th class="py-3.5 px-4 text-right">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y-2 divide-dashed divide-[#2D2A32]/15 text-sm font-semibold">
+                @for (tx of filteredTransactions(); track tx.id) {
+                  <tr
+                    class="hover:bg-[#FFFDF5] transition-colors"
+                    [class.opacity-60]="tx.status === 'RETURNED'"
+                  >
+                    <!-- Ngày -->
+                    <td class="py-3.5 px-4 whitespace-nowrap font-bold text-[#2D2A32]">
+                      {{ tx.transaction_date }}
+                    </td>
+
+                    <!-- Nội dung & Danh mục -->
+                    <td class="py-3.5 px-4">
+                      <div class="flex items-center gap-2.5">
+                        <span
+                          class="w-9 h-9 rounded-xl border-2 border-[#2D2A32] flex items-center justify-center text-lg shrink-0"
+                          [style.backgroundColor]="getCategoryColor(tx)"
+                        >
+                          {{ getCategoryIcon(tx) }}
+                        </span>
+                        <div>
+                          <div class="font-display font-extrabold text-base text-[#2D2A32] flex items-center gap-1.5">
+                            <span>{{ tx.title }}</span>
+                            @if (tx.is_locked) {
+                              <span title="Đã khóa chỉnh sửa" class="text-xs">🔒</span>
+                            }
+                          </div>
+                          <div class="text-xs text-[#2D2A32]/70">
+                            {{ getCategoryName(tx) }}
+                            @if (tx.note) {
+                              <span>• "{{ tx.note }}"</span>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- Ví / Nguồn -->
+                    <td class="py-3.5 px-4 whitespace-nowrap">
+                      <div class="font-bold text-[#2D2A32]">
+                        {{ getWalletLabelWithOwner(tx.wallet_id) }}
+                      </div>
+                      @if (tx.type === 'TRANSFER' && tx.to_wallet_id) {
+                        <div class="text-xs font-extrabold text-[#0369A1]">
+                          ➔ {{ getWalletLabelWithOwner(tx.to_wallet_id) }}
+                        </div>
+                      }
+                      @if (tx.status === 'RETURNED' && tx.refund_wallet_id) {
+                        <div class="text-xs font-extrabold text-[#15803D]">
+                          ↩️ Hoàn về: {{ getWalletLabelWithOwner(tx.refund_wallet_id) }}
+                        </div>
+                      }
+                    </td>
+
+                    <!-- Số tiền -->
+                    <td class="py-3.5 px-4 whitespace-nowrap text-right">
+                      <div
+                        class="money-num font-extrabold text-lg"
+                        [ngClass]="{
+                          'text-[#22C55E]': tx.type === 'INCOME',
+                          'text-[#FF5C6C]': tx.type === 'EXPENSE',
+                          'text-[#0369A1]': tx.type === 'TRANSFER',
+                          'line-through': tx.status === 'RETURNED' && tx.refunded_amount === tx.amount
+                        }"
                       >
-                        {{ getCategoryIcon(tx) }}
-                      </span>
-                      <div>
-                        <div class="font-display font-extrabold text-base text-[#2D2A32] flex items-center gap-1.5">
-                          <span>{{ tx.title }}</span>
-                          @if (tx.is_locked) {
-                            <span title="Đã khóa chỉnh sửa" class="text-xs">🔒</span>
-                          }
-                        </div>
-                        <div class="text-xs text-[#2D2A32]/70">
-                          {{ getCategoryName(tx) }}
-                          @if (tx.note) {
-                            <span>• "{{ tx.note }}"</span>
-                          }
-                        </div>
+                        @switch (tx.type) {
+                          @case ('INCOME') { {{ tx.amount | vnd: true : 'plus' }} }
+                          @case ('EXPENSE') { {{ tx.amount | vnd: true : 'minus' }} }
+                          @case ('TRANSFER') { ⇄ {{ tx.amount | vnd }} }
+                        }
                       </div>
-                    </div>
-                  </td>
 
-                  <!-- Ví / Nguồn -->
-                  <td class="py-3.5 px-4 whitespace-nowrap">
-                    <div class="font-bold text-[#2D2A32]">
-                      {{ getWalletName(tx.wallet_id) }}
-                    </div>
-                    @if (tx.type === 'TRANSFER' && tx.to_wallet_id) {
-                      <div class="text-xs font-extrabold text-[#0369A1]">
-                        ➔ {{ getWalletName(tx.to_wallet_id) }}
-                      </div>
-                    }
-                    @if (tx.status === 'RETURNED' && tx.refund_wallet_id) {
-                      <div class="text-xs font-extrabold text-[#15803D]">
-                        ↩️ Hoàn về: {{ getWalletName(tx.refund_wallet_id) }}
-                      </div>
-                    }
-                  </td>
+                      @if (tx.status === 'RETURNED') {
+                        <div class="text-xs font-extrabold text-[#15803D] money-num">
+                          Gốc: {{ tx.amount | vnd }} • Đã hoàn: +{{ (tx.refunded_amount ?? tx.amount) | vnd }}
+                        </div>
+                      }
+                    </td>
 
-                  <!-- Người -->
-                  <td class="py-3.5 px-4 whitespace-nowrap">
+                    <!-- Trạng thái -->
+                    <td class="py-3.5 px-4 whitespace-nowrap text-center">
+                      @if (tx.status === 'RETURNED') {
+                        <span
+                          class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#E0F2FE] text-[#0369A1] border-2 border-[#2D2A32] font-display font-extrabold text-xs"
+                        >
+                          Đã hoàn tiền ↩️
+                        </span>
+                      } @else {
+                        <span
+                          class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#DCFCE7] text-[#15803D] border-2 border-[#2D2A32] font-display font-extrabold text-xs"
+                        >
+                          Done ✓
+                        </span>
+                      }
+                    </td>
+
+                    <!-- Thao tác -->
+                    <td class="py-3.5 px-4 whitespace-nowrap text-right">
+                      <div class="inline-flex items-center justify-end gap-1.5">
+                        @if (tx.type === 'EXPENSE' && tx.is_refundable && tx.status === 'DONE') {
+                          <button
+                            type="button"
+                            (click)="openRefundModal(tx)"
+                            class="toy-btn px-2.5 py-1.5 bg-[#E0F2FE] hover:bg-[#38BDF8] text-[#2D2A32] text-xs font-extrabold"
+                            title="Quay xe trả hàng / Hoàn tiền"
+                          >
+                            Trả hàng ↩️
+                          </button>
+                        }
+
+                        @if (!tx.is_locked && tx.status !== 'RETURNED') {
+                          <button
+                            type="button"
+                            (click)="openEditModal(tx)"
+                            class="toy-btn px-2.5 py-1.5 bg-[#FFF9EC] text-xs"
+                            title="Sửa giao dịch"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            type="button"
+                            (click)="onSoftDelete(tx)"
+                            class="toy-btn px-2.5 py-1.5 bg-[#FFE4E6] text-xs"
+                            title="Xóa giao dịch"
+                          >
+                            🗑️
+                          </button>
+                        } @else {
+                          <span
+                            class="text-xs font-extrabold text-[#2D2A32]/50 px-2 py-1"
+                            title="Giao dịch đã khóa không thể sửa hoặc xóa"
+                          >
+                            🔒 Đã khóa
+                          </span>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="6" class="py-12 text-center">
+                      <div class="text-5xl mb-2">🐷💤</div>
+                      <div class="font-display font-extrabold text-lg text-[#2D2A32]">
+                        Sổ sạch bong kin kít, chưa có giao dịch nào!
+                      </div>
+                      <p class="text-xs font-bold text-[#2D2A32]/70 mt-1">
+                        Hãy bấm "+ Ting ting lúa về" hoặc "- Lại chốt đơn" ở góc trên để thêm giao dịch nhé.
+                      </p>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <!-- MOBILE CARD LIST (< 768px) -->
+          <div class="md:hidden p-3 space-y-3 bg-[#FFFDF5]">
+            @for (tx of filteredTransactions(); track tx.id) {
+              <div
+                class="toy-card p-4 bg-white space-y-3"
+                [class.opacity-60]="tx.status === 'RETURNED'"
+              >
+                <div class="flex items-start justify-between gap-2">
+                  <div class="flex items-start gap-2.5 min-w-0">
                     <span
-                      class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold border-2 border-[#2D2A32]"
-                      [style.backgroundColor]="ownerMeta[tx.actor].badgeBg"
+                      class="w-10 h-10 rounded-2xl border-2 border-[#2D2A32] flex items-center justify-center text-xl shrink-0"
+                      [style.backgroundColor]="getCategoryColor(tx)"
                     >
-                      {{ ownerMeta[tx.actor].emoji }} {{ ownerMeta[tx.actor].label }}
+                      {{ getCategoryIcon(tx) }}
                     </span>
-                  </td>
+                    <div class="min-w-0">
+                      <div class="font-display font-extrabold text-base text-[#2D2A32] truncate">
+                        {{ tx.title }}
+                      </div>
+                      <div class="text-xs font-bold text-[#2D2A32]/70">
+                        {{ tx.transaction_date }} • {{ getWalletLabelWithOwner(tx.wallet_id) }}
+                        @if (tx.type === 'TRANSFER' && tx.to_wallet_id) {
+                          <span>➔ {{ getWalletLabelWithOwner(tx.to_wallet_id) }}</span>
+                        }
+                      </div>
+                    </div>
+                  </div>
 
-                  <!-- Số tiền -->
-                  <td class="py-3.5 px-4 whitespace-nowrap text-right">
+                  @if (tx.status === 'RETURNED') {
+                    <span
+                      class="px-2.5 py-0.5 rounded-full bg-[#E0F2FE] text-[#0369A1] border-2 border-[#2D2A32] font-display font-extrabold text-[11px] shrink-0"
+                    >
+                      Đã hoàn tiền ↩️
+                    </span>
+                  } @else {
+                    <span
+                      class="px-2.5 py-0.5 rounded-full bg-[#DCFCE7] text-[#15803D] border-2 border-[#2D2A32] font-display font-extrabold text-[11px] shrink-0"
+                    >
+                      Done ✓
+                    </span>
+                  }
+                </div>
+
+                @if (tx.note) {
+                  <div class="text-xs font-semibold text-[#2D2A32]/75 bg-[#FFFDF5] px-3 py-1.5 rounded-xl border border-[#2D2A32]/20">
+                    💬 "{{ tx.note }}"
+                  </div>
+                }
+
+                <div class="flex items-center justify-between pt-2 border-t-2 border-dashed border-[#2D2A32]/15">
+                  <span class="text-xs font-bold text-[#2D2A32]/70">
+                    {{ getCategoryName(tx) }}
+                  </span>
+
+                  <div class="text-right">
                     <div
                       class="money-num font-extrabold text-lg"
                       [ngClass]="{
                         'text-[#22C55E]': tx.type === 'INCOME',
                         'text-[#FF5C6C]': tx.type === 'EXPENSE',
-                        'text-[#0369A1]': tx.type === 'TRANSFER',
-                        'line-through': tx.status === 'RETURNED' && tx.refunded_amount === tx.amount
+                        'text-[#0369A1]': tx.type === 'TRANSFER'
                       }"
                     >
                       @switch (tx.type) {
@@ -255,213 +425,55 @@ import { VndPipe } from '../../shared/pipes/vnd.pipe';
                         @case ('TRANSFER') { ⇄ {{ tx.amount | vnd }} }
                       }
                     </div>
-
                     @if (tx.status === 'RETURNED') {
-                      <div class="text-xs font-extrabold text-[#15803D] money-num">
-                        Gốc: {{ tx.amount | vnd }} • Đã hoàn: +{{ (tx.refunded_amount ?? tx.amount) | vnd }}
+                      <div class="text-[11px] font-extrabold text-[#15803D] money-num">
+                        Gốc: {{ tx.amount | vnd }} • Hoàn: +{{ (tx.refunded_amount ?? tx.amount) | vnd }}
                       </div>
                     }
-                  </td>
-
-                  <!-- Trạng thái (Status Column / Badge) -->
-                  <td class="py-3.5 px-4 whitespace-nowrap text-center">
-                    @if (tx.status === 'RETURNED') {
-                      <span
-                        class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#E0F2FE] text-[#0369A1] border-2 border-[#2D2A32] font-display font-extrabold text-xs"
-                      >
-                        Đã hoàn tiền ↩️
-                      </span>
-                    } @else {
-                      <span
-                        class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#DCFCE7] text-[#15803D] border-2 border-[#2D2A32] font-display font-extrabold text-xs"
-                      >
-                        Done ✓
-                      </span>
-                    }
-                  </td>
-
-                  <!-- Thao tác -->
-                  <td class="py-3.5 px-4 whitespace-nowrap text-right">
-                    <div class="inline-flex items-center justify-end gap-1.5">
-                      <!-- Nút Trả hàng chỉ hiện ở EXPENSE có is_refundable = true và status = 'DONE' -->
-                      @if (tx.type === 'EXPENSE' && tx.is_refundable && tx.status === 'DONE') {
-                        <button
-                          type="button"
-                          (click)="openRefundModal(tx)"
-                          class="toy-btn px-2.5 py-1.5 bg-[#E0F2FE] hover:bg-[#38BDF8] text-[#2D2A32] text-xs font-extrabold"
-                          title="Quay xe trả hàng / Hoàn tiền"
-                        >
-                          Trả hàng ↩️
-                        </button>
-                      }
-
-                      <!-- Các dòng đã is_locked = true ẩn/disable nút Sửa và Xóa -->
-                      @if (!tx.is_locked && tx.status !== 'RETURNED') {
-                        <button
-                          type="button"
-                          (click)="openEditModal(tx)"
-                          class="toy-btn px-2.5 py-1.5 bg-[#FFF9EC] text-xs"
-                          title="Sửa giao dịch"
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          type="button"
-                          (click)="onSoftDelete(tx)"
-                          class="toy-btn px-2.5 py-1.5 bg-[#FFE4E6] text-xs"
-                          title="Xóa giao dịch"
-                        >
-                          🗑️
-                        </button>
-                      } @else {
-                        <span
-                          class="text-xs font-extrabold text-[#2D2A32]/50 px-2 py-1"
-                          title="Giao dịch đã khóa không thể sửa hoặc xóa"
-                        >
-                          🔒 Đã khóa
-                        </span>
-                      }
-                    </div>
-                  </td>
-                </tr>
-              } @empty {
-                <tr>
-                  <td colspan="7" class="py-12 text-center">
-                    <div class="text-5xl mb-2">🐷💤</div>
-                    <div class="font-display font-extrabold text-lg text-[#2D2A32]">
-                      Sổ sạch bong kin kít, hôm nay nhà mình chưa tốn xu nào!
-                    </div>
-                    <p class="text-xs font-bold text-[#2D2A32]/70 mt-1">
-                      Hãy bấm "+ Ting ting lúa về" hoặc "- Lại chốt đơn" ở góc trên để thêm giao dịch đầu tiên nhé.
-                    </p>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- MOBILE CARD LIST (< 768px) -->
-      <div class="md:hidden space-y-3">
-        @for (tx of filteredTransactions(); track tx.id) {
-          <div
-            class="toy-card p-4 bg-white space-y-3"
-            [class.opacity-60]="tx.status === 'RETURNED'"
-          >
-            <div class="flex items-start justify-between gap-2">
-              <div class="flex items-start gap-2.5 min-w-0">
-                <span
-                  class="w-10 h-10 rounded-2xl border-2 border-[#2D2A32] flex items-center justify-center text-xl shrink-0"
-                  [style.backgroundColor]="getCategoryColor(tx)"
-                >
-                  {{ getCategoryIcon(tx) }}
-                </span>
-                <div class="min-w-0">
-                  <div class="font-display font-extrabold text-base text-[#2D2A32] truncate">
-                    {{ tx.title }}
-                  </div>
-                  <div class="text-xs font-bold text-[#2D2A32]/70">
-                    {{ tx.transaction_date }} • {{ getWalletName(tx.wallet_id) }}
-                    @if (tx.type === 'TRANSFER' && tx.to_wallet_id) {
-                      <span>➔ {{ getWalletName(tx.to_wallet_id) }}</span>
-                    }
                   </div>
                 </div>
-              </div>
 
-              <!-- Status Badge -->
-              @if (tx.status === 'RETURNED') {
-                <span
-                  class="px-2.5 py-0.5 rounded-full bg-[#E0F2FE] text-[#0369A1] border-2 border-[#2D2A32] font-display font-extrabold text-[11px] shrink-0"
-                >
-                  Đã hoàn tiền ↩️
-                </span>
-              } @else {
-                <span
-                  class="px-2.5 py-0.5 rounded-full bg-[#DCFCE7] text-[#15803D] border-2 border-[#2D2A32] font-display font-extrabold text-[11px] shrink-0"
-                >
-                  Done ✓
-                </span>
-              }
-            </div>
-
-            @if (tx.note) {
-              <div class="text-xs font-semibold text-[#2D2A32]/75 bg-[#FFFDF5] px-3 py-1.5 rounded-xl border border-[#2D2A32]/20">
-                💬 "{{ tx.note }}"
-              </div>
-            }
-
-            <div class="flex items-center justify-between pt-2 border-t-2 border-dashed border-[#2D2A32]/15">
-              <span
-                class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-extrabold border border-[#2D2A32]"
-                [style.backgroundColor]="ownerMeta[tx.actor].badgeBg"
-              >
-                {{ ownerMeta[tx.actor].emoji }} {{ ownerMeta[tx.actor].label }}
-              </span>
-
-              <div class="text-right">
-                <div
-                  class="money-num font-extrabold text-lg"
-                  [ngClass]="{
-                    'text-[#22C55E]': tx.type === 'INCOME',
-                    'text-[#FF5C6C]': tx.type === 'EXPENSE',
-                    'text-[#0369A1]': tx.type === 'TRANSFER'
-                  }"
-                >
-                  @switch (tx.type) {
-                    @case ('INCOME') { {{ tx.amount | vnd: true : 'plus' }} }
-                    @case ('EXPENSE') { {{ tx.amount | vnd: true : 'minus' }} }
-                    @case ('TRANSFER') { ⇄ {{ tx.amount | vnd }} }
+                <!-- Mobile Action Row -->
+                <div class="flex items-center justify-end gap-2 pt-1">
+                  @if (tx.type === 'EXPENSE' && tx.is_refundable && tx.status === 'DONE') {
+                    <button
+                      type="button"
+                      (click)="openRefundModal(tx)"
+                      class="toy-btn px-3 py-1.5 bg-[#E0F2FE] text-xs font-extrabold"
+                    >
+                      Trả hàng ↩️
+                    </button>
+                  }
+                  @if (!tx.is_locked && tx.status !== 'RETURNED') {
+                    <button
+                      type="button"
+                      (click)="openEditModal(tx)"
+                      class="toy-btn px-3 py-1.5 bg-[#FFF9EC] text-xs font-extrabold"
+                    >
+                      ✏️ Sửa
+                    </button>
+                    <button
+                      type="button"
+                      (click)="onSoftDelete(tx)"
+                      class="toy-btn px-3 py-1.5 bg-[#FFE4E6] text-xs font-extrabold"
+                    >
+                      🗑️ Xóa
+                    </button>
+                  } @else {
+                    <span class="text-xs font-extrabold text-[#2D2A32]/50">
+                      🔒 Đã khóa chỉnh sửa
+                    </span>
                   }
                 </div>
-                @if (tx.status === 'RETURNED') {
-                  <div class="text-[11px] font-extrabold text-[#15803D] money-num">
-                    Gốc: {{ tx.amount | vnd }} • Hoàn: +{{ (tx.refunded_amount ?? tx.amount) | vnd }}
-                  </div>
-                }
               </div>
-            </div>
-
-            <!-- Mobile Action Row -->
-            <div class="flex items-center justify-end gap-2 pt-1">
-              @if (tx.type === 'EXPENSE' && tx.is_refundable && tx.status === 'DONE') {
-                <button
-                  type="button"
-                  (click)="openRefundModal(tx)"
-                  class="toy-btn px-3 py-1.5 bg-[#E0F2FE] text-xs font-extrabold"
-                >
-                  Trả hàng ↩️
-                </button>
-              }
-              @if (!tx.is_locked && tx.status !== 'RETURNED') {
-                <button
-                  type="button"
-                  (click)="openEditModal(tx)"
-                  class="toy-btn px-3 py-1.5 bg-[#FFF9EC] text-xs font-extrabold"
-                >
-                  ✏️ Sửa
-                </button>
-                <button
-                  type="button"
-                  (click)="onSoftDelete(tx)"
-                  class="toy-btn px-3 py-1.5 bg-[#FFE4E6] text-xs font-extrabold"
-                >
-                  🗑️ Xóa
-                </button>
-              } @else {
-                <span class="text-xs font-extrabold text-[#2D2A32]/50">
-                  🔒 Đã khóa chỉnh sửa
-                </span>
-              }
-            </div>
-          </div>
-        } @empty {
-          <div class="toy-card p-8 bg-white text-center">
-            <div class="text-4xl mb-2">🐷💤</div>
-            <div class="font-display font-extrabold text-base text-[#2D2A32]">
-              Chưa có giao dịch nào phù hợp!
-            </div>
+            } @empty {
+              <div class="p-8 text-center">
+                <div class="text-4xl mb-2">🐷💤</div>
+                <div class="font-display font-extrabold text-base text-[#2D2A32]">
+                  Chưa có giao dịch nào phù hợp!
+                </div>
+              </div>
+            }
           </div>
         }
       </div>
@@ -491,11 +503,19 @@ export class TransactionsComponent {
 
   readonly ownerMeta = OWNER_SCOPE_META;
 
-  readonly searchQuery = signal<string>('');
-  readonly filterType = signal<'ALL' | TxType>('ALL');
-  readonly filterActor = signal<'ALL' | OwnerScope>('ALL');
-  readonly filterWalletId = signal<string>('ALL');
-  readonly filterCategoryId = signal<string>('ALL');
+  // Collapsible history state
+  readonly historyOpen = signal<boolean>(true);
+
+  // Draft vs Applied filters
+  readonly draftSearch = signal<string>('');
+  readonly draftType = signal<'ALL' | TxType>('ALL');
+  readonly draftWalletId = signal<string>('ALL');
+  readonly draftCategoryId = signal<string>('ALL');
+
+  readonly appliedSearch = signal<string>('');
+  readonly appliedType = signal<'ALL' | TxType>('ALL');
+  readonly appliedWalletId = signal<string>('ALL');
+  readonly appliedCategoryId = signal<string>('ALL');
 
   readonly formModalOpen = signal<boolean>(false);
   readonly formDefaultType = signal<TxType>('EXPENSE');
@@ -504,16 +524,29 @@ export class TransactionsComponent {
   readonly refundModalOpen = signal<boolean>(false);
   readonly refundingTx = signal<Transaction | null>(null);
 
+  applyFilters(): void {
+    this.appliedSearch.set(this.draftSearch());
+    this.appliedType.set(this.draftType());
+    this.appliedWalletId.set(this.draftWalletId());
+    this.appliedCategoryId.set(this.draftCategoryId());
+  }
+
+  resetFilters(): void {
+    this.draftSearch.set('');
+    this.draftType.set('ALL');
+    this.draftWalletId.set('ALL');
+    this.draftCategoryId.set('ALL');
+    this.applyFilters();
+  }
+
   readonly filteredTransactions = computed(() => {
-    const q = this.searchQuery().trim().toLowerCase();
-    const fType = this.filterType();
-    const fActor = this.filterActor();
-    const fWallet = this.filterWalletId();
-    const fCat = this.filterCategoryId();
+    const q = this.appliedSearch().trim().toLowerCase();
+    const fType = this.appliedType();
+    const fWallet = this.appliedWalletId();
+    const fCat = this.appliedCategoryId();
 
     return this.transactionService.transactions().filter((tx) => {
       if (fType !== 'ALL' && tx.type !== fType) return false;
-      if (fActor !== 'ALL' && tx.actor !== fActor) return false;
       if (
         fWallet !== 'ALL' &&
         tx.wallet_id !== fWallet &&
@@ -531,9 +564,11 @@ export class TransactionsComponent {
     });
   });
 
-  getWalletName(walletId: string | null): string {
+  getWalletLabelWithOwner(walletId: string | null): string {
     if (!walletId) return '---';
-    return this.walletService.getWalletById(walletId)?.name ?? 'Ví đã ẩn';
+    const w = this.walletService.getWalletById(walletId);
+    if (!w) return 'Ví đã ẩn';
+    return `${this.ownerMeta[w.owner_scope].emoji} ${w.name}`;
   }
 
   getCategoryName(tx: Transaction): string {

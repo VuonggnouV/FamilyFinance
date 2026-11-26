@@ -143,6 +143,14 @@ import { VndPipe } from './shared/pipes/vnd.pipe';
           >
             - Chi
           </button>
+          <button
+            type="button"
+            (click)="logout()"
+            class="toy-btn px-2 py-1.5 bg-white text-xs"
+            title="Đăng xuất"
+          >
+            🚪
+          </button>
         </div>
       </header>
 
@@ -266,6 +274,9 @@ export class MainLayoutComponent implements OnInit {
   }
 
   async logout(): Promise<void> {
+    if (!confirm('Bạn có chắc muốn đăng xuất khỏi két sắt tổ ấm không?')) {
+      return;
+    }
     await this.authService.signOut();
     this.familyService.clearState();
     await this.router.navigate(['/auth']);

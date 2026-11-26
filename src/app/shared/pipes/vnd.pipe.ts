@@ -47,3 +47,13 @@ export function parseVndInput(formatted: string | number | null | undefined): nu
   const digits = formatted.replace(/\D/g, '');
   return digits ? parseInt(digits, 10) : 0;
 }
+
+/**
+ * Multiply current input by 1,000 (append 3 zeros: e.g. 23 -> 23.000)
+ */
+export function appendThreeZeros(formatted: string | number | null | undefined): string {
+  const current = parseVndInput(formatted);
+  if (current <= 0) return '';
+  const next = Math.min(999_999_999_999, current * 1000);
+  return formatVndInput(next);
+}

@@ -22,6 +22,7 @@ import {
   VndPipe,
   formatVndInput,
   parseVndInput,
+  appendThreeZeros,
 } from '../pipes/vnd.pipe';
 
 @Component({
@@ -80,7 +81,7 @@ import {
             </div>
           </div>
 
-          <!-- COMPONENT 1: Khung nhập số tiền hoàn + Dropdown chọn ví nhận hoàn tiền -->
+          <!-- COMPONENT 1: Khung nhập số tiền hoàn + Nút .000 + Dropdown chọn ví nhận hoàn tiền -->
           <div class="space-y-3">
             <div>
               <label class="block text-xs font-extrabold uppercase tracking-wider text-[#2D2A32]/75 mb-1">
@@ -101,13 +102,31 @@ import {
                   VNĐ
                 </span>
               </div>
+
+              <div class="flex flex-wrap items-center gap-1.5 mt-2">
+                <button
+                  type="button"
+                  (click)="onAppendThreeZeros()"
+                  class="px-3 py-1 text-xs font-extrabold rounded-xl border-2 border-[#2D2A32] bg-[#FFB020] hover:bg-[#FFA000] text-[#2D2A32] shadow-[0_2px_0_#2D2A32] cursor-pointer money-num"
+                >
+                  .000 (×1000)
+                </button>
+                <button
+                  type="button"
+                  (click)="onAmountChange(String(transaction.amount))"
+                  class="px-2.5 py-1 text-xs font-extrabold rounded-xl border border-[#2D2A32] bg-white hover:bg-[#DCFCE7] cursor-pointer money-num"
+                >
+                  Đặt bằng tiền gốc ({{ transaction.amount | vnd }})
+                </button>
+              </div>
+
               @if (validationError()) {
                 <p class="text-xs font-extrabold text-[#BE123C] mt-1">
                   🚨 {{ validationError() }}
                 </p>
               } @else {
                 <p class="text-xs font-semibold text-[#2D2A32]/70 mt-1">
-                  Tối đa: <span class="money-num font-bold">{{ transaction.amount | vnd }}</span> (có thể nhập hoàn 1 phần hoặc toàn bộ)
+                  Tối đa: <span class="money-num font-bold">{{ transaction.amount | vnd }}</span>
                 </p>
               }
             </div>
@@ -130,28 +149,36 @@ import {
             </div>
           </div>
 
-          <!-- COMPONENT 2 & COMPONENT 3: Nút "Xác nhận" & Nút "Hoàn toàn bộ 100%" cùng hiển thị -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-            <!-- Component 2: Nút "Xác nhận" (gọi refund_transaction với số tiền trong ô nhập) -->
+          <!-- COMPONENT 2 & COMPONENT 3: Nút "Xác nhận" & Nút "Hoàn toàn bộ 100%" -->
+          @if (refundDone()) {
             <button
               type="button"
-              [disabled]="submitting()"
-              (click)="confirmPartialOrCustomRefund()"
-              class="toy-btn py-3 px-4 bg-[#38BDF8] hover:bg-[#0EA5E9] text-[#2D2A32] text-sm font-extrabold"
+              (click)="onClose()"
+              class="toy-btn w-full py-3 bg-[#22C55E] text-white text-base font-extrabold"
             >
-              ✅ Xác nhận hoàn
+              ✅ Đã hoàn tiền xong! (Đóng)
             </button>
+          } @else {
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <button
+                type="button"
+                [disabled]="submitting()"
+                (click)="confirmPartialOrCustomRefund()"
+                class="toy-btn py-3 px-4 bg-[#38BDF8] hover:bg-[#0EA5E9] text-[#2D2A32] text-sm font-extrabold"
+              >
+                ✅ Xác nhận hoàn
+              </button>
 
-            <!-- Component 3: Nút "Hoàn toàn bộ" (gọi refund_transaction với p_refund_amount: null) -->
-            <button
-              type="button"
-              [disabled]="submitting()"
-              (click)="confirmFullRefund()"
-              class="toy-btn py-3 px-4 bg-[#22C55E] hover:bg-[#16A34A] text-white text-sm font-extrabold"
-            >
-              💯 Hoàn toàn bộ 100%
-            </button>
-          </div>
+              <button
+                type="button"
+                [disabled]="submitting()"
+                (click)="confirmFullRefund()"
+                class="toy-btn py-3 px-4 bg-[#22C55E] hover:bg-[#16A34A] text-white text-sm font-extrabold"
+              >
+                💯 Hoàn toàn bộ 100%
+              </button>
+            </div>
+          }
         </div>
       </div>
     }
@@ -163,6 +190,8 @@ export class RefundModalComponent implements OnChanges {
   private readonly toast = inject(ToastService);
   private readonly confetti = inject(ConfettiService);
 
+  readonly String = String;
+
   @Input() isOpen = false;
   @Input() transaction: Transaction | null = null;
   @Output() closed = new EventEmitter<void>();
@@ -173,12 +202,22 @@ export class RefundModalComponent implements OnChanges {
   readonly refundWalletId = signal<string>('');
   readonly validationError = signal<string>('');
   readonly submitting = signal<boolean>(false);
+  readonly refundDone = signal<boolean>(false);
 
   ngOnChanges(changes: SimpleChanges): void {
     if ((changes['isOpen'] || changes['transaction']) && this.isOpen && this.transaction) {
+      this.submitting.set(false);
+      this.refundDone.set(false);
       this.refundAmountDisplay.set(formatVndInput(this.transaction.amount));
       this.refundWalletId.set(this.transaction.wallet_id);
       this.validationError.set('');
+    }
+  }
+
+  onAppendThreeZeros(): void {
+    const next = appendThreeZeros(this.refundAmountDisplay());
+    if (next) {
+      this.onAmountChange(next);
     }
   }
 
@@ -197,11 +236,8 @@ export class RefundModalComponent implements OnChanges {
     }
   }
 
-  /**
-   * Component 2: Nút "Xác nhận" -> calls refund_transaction with the amount in the input box
-   */
   async confirmPartialOrCustomRefund(): Promise<void> {
-    if (!this.transaction) return;
+    if (!this.transaction || this.submitting() || this.refundDone()) return;
     const amount = parseVndInput(this.refundAmountDisplay());
     if (amount <= 0 || amount > this.transaction.amount) {
       this.validationError.set(
@@ -212,16 +248,13 @@ export class RefundModalComponent implements OnChanges {
     await this.executeRefund(amount);
   }
 
-  /**
-   * Component 3: Nút "Hoàn toàn bộ" -> calls refund_transaction with p_refund_amount: null
-   */
   async confirmFullRefund(): Promise<void> {
-    if (!this.transaction) return;
+    if (!this.transaction || this.submitting() || this.refundDone()) return;
     await this.executeRefund(null);
   }
 
   private async executeRefund(p_refund_amount: number | null): Promise<void> {
-    if (!this.transaction) return;
+    if (!this.transaction || this.submitting() || this.refundDone()) return;
     const tx = this.transaction;
     const walletId = this.refundWalletId() || tx.wallet_id;
 
@@ -234,11 +267,11 @@ export class RefundModalComponent implements OnChanges {
       });
 
       const actualRefund = p_refund_amount ?? tx.amount;
+      this.refundDone.set(true);
       this.confetti.celebrate();
       this.refunded.emit();
       this.onClose();
 
-      // Trigger 10-second Undo Toast calling undo_refund_transaction
       this.toast.showUndo(
         'Đã hoàn tiền trả hàng! 🛒↩️',
         `Đã hoàn ${formatVndInput(actualRefund)} ₫ cho đơn "${tx.title}". Bạn có 10 giây nếu bấm nhầm!`,

@@ -13,11 +13,14 @@ import {
 import { WalletService, WalletWithBalance } from '../../core/services/wallet.service';
 import { CategoryService } from '../../core/services/category.service';
 import { FamilyService } from '../../core/services/family.service';
+import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
+import { Router } from '@angular/router';
 import {
   VndPipe,
   formatVndInput,
   parseVndInput,
+  appendThreeZeros,
 } from '../../shared/pipes/vnd.pipe';
 
 @Component({
@@ -495,6 +498,20 @@ import {
                 </div>
               }
             </div>
+
+            <!-- Mobile / Quick Account Logout Section -->
+            <div class="pt-4 border-t-2 border-dashed border-[#2D2A32]/20 flex items-center justify-between gap-3">
+              <div class="text-xs font-bold text-[#2D2A32]/75 truncate">
+                📧 {{ authService.user()?.email }}
+              </div>
+              <button
+                type="button"
+                (click)="logout()"
+                class="toy-btn px-4 py-2.5 bg-[#FFE4E6] hover:bg-[#FF5C6C] hover:text-white text-[#BE123C] text-xs font-extrabold shrink-0"
+              >
+                🚪 Đăng xuất tài khoản
+              </button>
+            </div>
           </div>
         </div>
       }
@@ -586,6 +603,22 @@ import {
                   placeholder="0"
                   class="toy-input money-num text-xl font-extrabold bg-white"
                 />
+                <div class="flex flex-wrap items-center gap-1.5 mt-2">
+                  <button
+                    type="button"
+                    (click)="onAppendZerosWallet()"
+                    class="px-3 py-1 text-xs font-extrabold rounded-xl border-2 border-[#2D2A32] bg-[#FFB020] hover:bg-[#FFA000] text-[#2D2A32] shadow-[0_2px_0_#2D2A32] cursor-pointer money-num"
+                  >
+                    .000 (×1000)
+                  </button>
+                  <button
+                    type="button"
+                    (click)="walletInitialDisplay.set('0')"
+                    class="px-2.5 py-1 text-xs font-extrabold rounded-xl border border-[#2D2A32] bg-white cursor-pointer"
+                  >
+                    Đặt về 0
+                  </button>
+                </div>
               </div>
 
               <div class="flex items-center justify-end gap-2 pt-2">
@@ -766,7 +799,9 @@ export class SettingsComponent {
   readonly walletService = inject(WalletService);
   readonly categoryService = inject(CategoryService);
   readonly familyService = inject(FamilyService);
+  readonly authService = inject(AuthService);
   private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
 
   readonly ownerMeta = OWNER_SCOPE_META;
   readonly walletTypeMeta = WALLET_TYPE_META;
@@ -832,6 +867,20 @@ export class SettingsComponent {
 
   formatVnd(val: string): string {
     return formatVndInput(val);
+  }
+
+  onAppendZerosWallet(): void {
+    const next = appendThreeZeros(this.walletInitialDisplay());
+    if (next) {
+      this.walletInitialDisplay.set(next);
+    }
+  }
+
+  async logout(): Promise<void> {
+    if (!confirm('Bạn có chắc muốn đăng xuất khỏi tài khoản không?')) return;
+    await this.authService.signOut();
+    this.familyService.clearState();
+    await this.router.navigate(['/auth']);
   }
 
   getCategoriesByType(type: CategoryType): Category[] {

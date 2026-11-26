@@ -53,8 +53,6 @@ export class DebtLoanService {
   readonly dueReminders = computed(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const sevenDaysLater = new Date(today);
-    sevenDaysLater.setDate(today.getDate() + 7);
 
     return this.items()
       .filter((item) => item.status === 'OPEN' && !!item.due_date)
@@ -126,7 +124,7 @@ export class DebtLoanService {
     counterparty: string;
     principal_amount: number;
     wallet_id: string;
-    actor: OwnerScope;
+    actor?: OwnerScope;
     affects_balance: boolean;
     transaction_date: string;
     due_date?: string | null;
@@ -136,29 +134,45 @@ export class DebtLoanService {
     const user = this.supabase.currentUser();
     if (!familyId) throw new Error('Chưa chọn gia đình');
 
-    const { data, error } = await this.supabase.client
+    const baseRow: Record<string, any> = {
+      family_id: familyId,
+      type: payload.type,
+      counterparty: payload.counterparty.trim(),
+      principal_amount: Math.round(Number(payload.principal_amount)),
+      paid_amount: 0,
+      wallet_id: payload.wallet_id,
+      affects_balance:
+        payload.type === 'DEBT' ? Boolean(payload.affects_balance) : true,
+      transaction_date: payload.transaction_date,
+      due_date: payload.due_date || null,
+      status: 'OPEN',
+      note: payload.note?.trim() || null,
+      created_by: user?.id ?? null,
+    };
+
+    // Compatible both before AND after dropping 'actor' column in Supabase
+    let { data, error } = await this.supabase.client
       .from('debts_loans')
-      .insert({
-        family_id: familyId,
-        type: payload.type,
-        counterparty: payload.counterparty.trim(),
-        principal_amount: Math.round(Number(payload.principal_amount)),
-        paid_amount: 0,
-        wallet_id: payload.wallet_id,
-        actor: payload.actor,
-        affects_balance:
-          payload.type === 'DEBT' ? Boolean(payload.affects_balance) : true,
-        transaction_date: payload.transaction_date,
-        due_date: payload.due_date || null,
-        status: 'OPEN',
-        note: payload.note?.trim() || null,
-        created_by: user?.id ?? null,
-      })
+      .insert(baseRow)
       .select()
       .single();
 
+    if (error && (error.code === '23502' || error.message?.includes('actor'))) {
+      const walletScope =
+        payload.actor ??
+        this.walletService.getWalletById(payload.wallet_id)?.owner_scope ??
+        'SHARED';
+      const retry = await this.supabase.client
+        .from('debts_loans')
+        .insert({ ...baseRow, actor: walletScope })
+        .select()
+        .single();
+      data = retry.data;
+      error = retry.error;
+    }
+
     if (error) throw error;
-    await Promise.all([this.loadDebtsLoans(), this.walletService.loadWallets()]);
+    void Promise.all([this.loadDebtsLoans(), this.walletService.loadWallets()]);
     return data as DebtLoan;
   }
 
@@ -168,7 +182,7 @@ export class DebtLoanService {
       counterparty: string;
       principal_amount: number;
       wallet_id: string;
-      actor: OwnerScope;
+      actor?: OwnerScope;
       affects_balance: boolean;
       transaction_date: string;
       due_date: string | null;
@@ -180,6 +194,8 @@ export class DebtLoanService {
       ...payload,
       updated_by: user?.id ?? null,
     };
+    delete updateRow['actor'];
+
     if (updateRow['principal_amount'] !== undefined) {
       updateRow['principal_amount'] = Math.round(
         Number(updateRow['principal_amount'])
@@ -195,11 +211,10 @@ export class DebtLoanService {
       .eq('id', id);
 
     if (error) throw error;
-    await Promise.all([this.loadDebtsLoans(), this.walletService.loadWallets()]);
+    void Promise.all([this.loadDebtsLoans(), this.walletService.loadWallets()]);
   }
 
   async deleteDebtLoan(id: string): Promise<void> {
-    // Try soft-delete via deleted_at first, fallback to hard delete if allowed
     const { error } = await this.supabase.client
       .from('debts_loans')
       .update({ deleted_at: new Date().toISOString() })
@@ -216,10 +231,6 @@ export class DebtLoanService {
     await Promise.all([this.loadDebtsLoans(), this.walletService.loadWallets()]);
   }
 
-  /**
-   * Calls RPC record_repayment({ p_debt_loan_id, p_amount, p_wallet_id, p_paid_date, p_note })
-   * Returns { repaymentId, settled } so the caller can trigger 10s Undo when settled.
-   */
   async recordRepayment(params: {
     p_debt_loan_id: string;
     p_amount: number;
@@ -243,7 +254,6 @@ export class DebtLoanService {
 
     await Promise.all([this.loadDebtsLoans(), this.walletService.loadWallets()]);
 
-    // Identify the newly created repayment row ID
     let repaymentId: string | null = null;
     if (typeof data === 'string') {
       repaymentId = data;
@@ -269,10 +279,6 @@ export class DebtLoanService {
     return { repaymentId, settled };
   }
 
-  /**
-   * Undo repayment within 10s by deleting the exact repayments.id row just created.
-   * DB Trigger automatically unlocks parent debts_loans row within 10s window.
-   */
   async undoRepayment(repaymentId: string): Promise<void> {
     const { error } = await this.supabase.client
       .from('repayments')

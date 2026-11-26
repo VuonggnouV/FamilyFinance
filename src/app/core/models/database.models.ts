@@ -69,7 +69,7 @@ export interface Transaction {
   wallet_id: string;
   to_wallet_id: string | null;
   category_id: string | null;
-  actor: OwnerScope;
+  actor?: OwnerScope;
   title: string;
   note: string | null;
   transaction_date: string;
@@ -93,7 +93,7 @@ export interface DebtLoan {
   principal_amount: number;
   paid_amount: number;
   wallet_id: string;
-  actor: OwnerScope;
+  actor?: OwnerScope;
   affects_balance: boolean;
   transaction_date: string;
   due_date: string | null;
@@ -120,7 +120,7 @@ export interface Repayment {
 export interface MonthlyCashflowSummary {
   family_id: string;
   month_start: string;
-  actor: OwnerScope;
+  actor?: OwnerScope;
   total_income: number;
   total_expense: number;
 }
