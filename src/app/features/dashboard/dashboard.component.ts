@@ -25,17 +25,29 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { WalletService } from '../../core/services/wallet.service';
+import { WalletService, WalletWithBalance } from '../../core/services/wallet.service';
 import { CategoryService } from '../../core/services/category.service';
 import { TransactionService } from '../../core/services/transaction.service';
 import { DebtLoanService } from '../../core/services/debt-loan.service';
 import { DataSyncService } from '../../core/services/data-sync.service';
-import { OWNER_SCOPE_META } from '../../core/models/database.models';
+import { ToastService } from '../../core/services/toast.service';
+import {
+  Wallet,
+  OwnerScope,
+  WalletType,
+  OWNER_SCOPE_META,
+  WALLET_TYPE_META,
+} from '../../core/models/database.models';
 import {
   PiggyMascotComponent,
   PiggyMood,
 } from '../../shared/components/piggy-mascot.component';
-import { VndPipe, formatVndInput } from '../../shared/pipes/vnd.pipe';
+import {
+  VndPipe,
+  formatVndInput,
+  parseVndInput,
+  appendThreeZeros,
+} from '../../shared/pipes/vnd.pipe';
 
 Chart.register(
   CategoryScale,
@@ -62,7 +74,7 @@ Chart.register(
     VndPipe,
   ],
   template: `
-    <div class="space-y-6">
+    <div class="space-y-7 sm:space-y-8">
       <!-- 1. Piggy Mascot Header Banner (Multi-context + Click/Randomize) -->
       <app-piggy-mascot
         [mood]="piggyMood()"
@@ -73,55 +85,37 @@ Chart.register(
       <!-- ======================================================================= -->
       <!-- 2. TÀI SẢN & TỔNG TIỀN HIỆN CÓ (NẰM NGOÀI / TRƯỚC BỘ LỌC)               -->
       <!-- ======================================================================= -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- Card Tổng tiền hiện có + Chi tiết 3 nhóm ví Vợ / Chồng / Chung -->
-        <div class="toy-card-lg p-5 bg-[#FFF9EC] md:col-span-2 flex flex-col justify-between">
-          <div class="flex flex-wrap items-start justify-between gap-2">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-extrabold uppercase text-[#2D2A32]/75">
-                  💰 TỔNG TIỀN HIỆN CÓ TRONG KÉT SẮT
-                </span>
-                <span
-                  class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-[#FEF3C7] border border-[#2D2A32]"
-                >
-                  {{ walletService.activeWallets().length }} ví đang dùng
-                </span>
-              </div>
-              <div class="money-num font-extrabold text-3xl sm:text-4xl text-[#15803D] mt-1">
-                {{ walletService.totalBalance() | vnd }}
-              </div>
-            </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <!-- Card Tổng tiền hiện có (Gọn gàng, bấm "Chi tiết" cuộn xuống & nháy sáng khung ví) -->
+        <div class="toy-card-lg p-5 sm:p-6 bg-[#FFF9EC] md:col-span-2 flex flex-col justify-between">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="text-xs sm:text-sm font-extrabold uppercase text-[#2D2A32]/75">
+              💰 TỔNG TIỀN HIỆN CÓ TRONG KÉT SẮT
+            </span>
 
-            <a
-              routerLink="/settings"
-              class="toy-btn px-3 py-1.5 bg-white text-xs font-extrabold"
-            >
-              ⚙️ Quản lý ví
-            </a>
+            <div class="flex items-center gap-2">
+              <span
+                class="px-3 py-1 rounded-full text-xs font-extrabold bg-[#FEF3C7] border-2 border-[#2D2A32]"
+              >
+                {{ walletService.activeWallets().length }} ví đang dùng
+              </span>
+              <button
+                type="button"
+                (click)="scrollToWalletDetails()"
+                class="toy-btn px-3 py-1 bg-[#FFB020] hover:bg-[#FFA000] text-[#2D2A32] text-xs font-extrabold"
+              >
+                Chi tiết ↓
+              </button>
+            </div>
           </div>
 
-          <!-- 3 Owner Scope Mini Breakdown Stickers -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mt-4 pt-3 border-t-2 border-dashed border-[#2D2A32]/15">
-            <div class="p-2.5 rounded-2xl bg-[#FFE4E6] border-2 border-[#2D2A32] flex sm:flex-col justify-between">
-              <span class="text-xs font-extrabold text-[#BE123C]">🐱 Vợ giữ:</span>
-              <span class="money-num font-extrabold text-base text-[#BE123C]">
-                {{ walletService.balanceByOwner().WIFE | vnd }}
-              </span>
-            </div>
-            <div class="p-2.5 rounded-2xl bg-[#E0F2FE] border-2 border-[#2D2A32] flex sm:flex-col justify-between">
-              <span class="text-xs font-extrabold text-[#0369A1]">🐶 Chồng giữ:</span>
-              <span class="money-num font-extrabold text-base text-[#0369A1]">
-                {{ walletService.balanceByOwner().HUSBAND | vnd }}
-              </span>
-            </div>
-            <div class="p-2.5 rounded-2xl bg-[#FEF3C7] border-2 border-[#2D2A32] flex sm:flex-col justify-between">
-              <span class="text-xs font-extrabold text-[#B45309]">🐷 Quỹ chung:</span>
-              <span class="money-num font-extrabold text-base text-[#B45309]">
-                {{ walletService.balanceByOwner().SHARED | vnd }}
-              </span>
-            </div>
+          <div class="money-num font-extrabold text-3xl sm:text-5xl text-[#15803D] my-3">
+            {{ walletService.totalBalance() | vnd }}
           </div>
+
+          <p class="text-xs font-bold text-[#2D2A32]/65">
+            💡 Bấm nút <strong>"Chi tiết ↓"</strong> để xem số dư từng ví bên dưới
+          </p>
         </div>
 
         <!-- Card Tổng đang Cho mượn (OPEN) & Tổng đang Nợ (OPEN) -->
@@ -228,243 +222,290 @@ Chart.register(
       }
 
       <!-- ======================================================================= -->
-      <!-- 3. BỘ LỌC SOI SỔ CHI TIÊU (CHỌN XONG BẤM "ÁP DỤNG" MỚI RA KẾT QUẢ)      -->
+      <!-- 3. KHUNG BỘ LỌC SOI SỔ CHI TIÊU (ĐÓNG/MỞ NHƯ LỊCH SỬ, MẶC ĐỊNH ĐÓNG)    -->
       <!-- ======================================================================= -->
-      <div class="toy-card-lg p-5 bg-white space-y-5">
-        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b-2 border-dashed border-[#2D2A32]/15">
-          <div class="flex items-center gap-2">
-            <span class="text-xl">🔍</span>
-            <div>
-              <h3 class="font-display font-extrabold text-lg text-[#2D2A32]">
-                Bộ lọc soi sổ chi tiêu
+      <div class="toy-card-lg bg-white overflow-hidden">
+        <!-- Collapsible Header Bar (Default Closed, Click to Open) -->
+        <div
+          (click)="filterOpen.set(!filterOpen())"
+          class="p-4 sm:p-5 bg-[#FFF9EC] flex items-center justify-between gap-3 cursor-pointer select-none hover:bg-[#FEF3C7]/60 transition-colors"
+          [class.border-b-2]="filterOpen()"
+          [class.border-[#2D2A32]]="filterOpen()"
+        >
+          <div class="flex items-center gap-3 min-w-0">
+            <div
+              class="w-11 h-11 rounded-2xl bg-[#FEF3C7] border-2 border-[#2D2A32] shadow-[0_2px_0_#2D2A32] flex items-center justify-center text-xl shrink-0"
+            >
+              🔍
+            </div>
+            <div class="min-w-0">
+              <h3 class="font-display font-extrabold text-lg sm:text-xl text-[#2D2A32] truncate">
+                Bộ lọc soi sổ chi tiêu & Kết quả kỳ lọc
               </h3>
-              <p class="text-xs font-bold text-[#2D2A32]/70">
-                Chọn tiêu chí rồi bấm nút "Áp dụng bộ lọc" để xem kết quả
+              <p class="text-xs font-bold text-[#2D2A32]/70 truncate">
+                Thu: <span class="money-num text-[#15803D]">{{ periodKpis().totalIncome | vnd }}</span>
+                • Chi: <span class="money-num text-[#BE123C]">{{ periodKpis().netExpense | vnd }}</span>
               </p>
             </div>
           </div>
 
-          <div class="flex flex-wrap items-center gap-1.5">
-            <button
-              type="button"
-              (click)="setThisMonthDraft()"
-              class="px-3 py-1 rounded-xl border-2 border-[#2D2A32] font-display font-bold text-xs cursor-pointer transition-all"
-              [ngClass]="
-                draftRangePreset() === 'THIS_MONTH'
-                  ? 'bg-[#FFB020] shadow-[0_2px_0_#2D2A32]'
-                  : 'bg-[#FFFDF5] hover:bg-[#FEF3C7]'
-              "
-            >
-              📅 Tháng này
-            </button>
-            <button
-              type="button"
-              (click)="setAllTimeDraft()"
-              class="px-3 py-1 rounded-xl border-2 border-[#2D2A32] font-display font-bold text-xs cursor-pointer transition-all"
-              [ngClass]="
-                draftRangePreset() === 'ALL_TIME'
-                  ? 'bg-[#FFB020] shadow-[0_2px_0_#2D2A32]'
-                  : 'bg-[#FFFDF5] hover:bg-[#FEF3C7]'
-              "
-            >
-              ♾️ Từ đầu tới nay
-            </button>
-            <button
-              type="button"
-              (click)="resetAndApplyFilters()"
-              class="px-3 py-1 rounded-xl border-2 border-[#2D2A32] bg-white hover:bg-[#FFE4E6] font-display font-bold text-xs cursor-pointer"
-            >
-              🔄 Đặt lại
-            </button>
-          </div>
+          <button
+            type="button"
+            class="toy-btn px-3.5 py-1.5 bg-white text-xs font-extrabold shrink-0"
+          >
+            {{ filterOpen() ? 'Thu gọn ▲' : 'Mở bộ lọc ▼' }}
+          </button>
         </div>
 
-        <!-- Filter Controls (Draft State) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          <!-- Loại Thu / Chi -->
-          <div>
-            <label class="block text-[11px] font-extrabold uppercase text-[#2D2A32]/70 mb-1">
-              Loại giao dịch
-            </label>
-            <select
-              [ngModel]="draftType()"
-              (ngModelChange)="draftType.set($event)"
-              class="toy-input !py-2 !px-3 text-xs bg-[#FFFDF5]"
-            >
-              <option value="ALL">Tất cả Thu & Chi</option>
-              <option value="INCOME">🌾 Chỉ khoản Thu</option>
-              <option value="EXPENSE">🛒 Chỉ khoản Chi</option>
-            </select>
-          </div>
-
-          <!-- Nguồn tiền / Ví -->
-          <div>
-            <label class="block text-[11px] font-extrabold uppercase text-[#2D2A32]/70 mb-1">
-              Nguồn tiền / Ví
-            </label>
-            <select
-              [ngModel]="draftWalletId()"
-              (ngModelChange)="draftWalletId.set($event)"
-              class="toy-input !py-2 !px-3 text-xs bg-[#FFFDF5]"
-            >
-              <option value="ALL">👛 Tất cả ví</option>
-              @for (w of walletService.walletsWithBalance(); track w.id) {
-                <option [value]="w.id">
-                  {{ ownerMeta[w.owner_scope].emoji }} {{ w.name }}
-                </option>
-              }
-            </select>
-          </div>
-
-          <!-- Danh mục -->
-          <div>
-            <label class="block text-[11px] font-extrabold uppercase text-[#2D2A32]/70 mb-1">
-              Danh mục
-            </label>
-            <select
-              [ngModel]="draftCategoryId()"
-              (ngModelChange)="draftCategoryId.set($event)"
-              class="toy-input !py-2 !px-3 text-xs bg-[#FFFDF5]"
-            >
-              <option value="ALL">🏷️ Tất cả danh mục</option>
-              @for (c of categoryService.categories(); track c.id) {
-                <option [value]="c.id">{{ c.icon }} {{ c.name }}</option>
-              }
-            </select>
-          </div>
-
-          <!-- Từ ngày -->
-          <div>
-            <label class="block text-[11px] font-extrabold uppercase text-[#2D2A32]/70 mb-1">
-              Từ ngày
-            </label>
-            <input
-              type="date"
-              [ngModel]="draftStartDate()"
-              (ngModelChange)="onDraftDateChange('start', $event)"
-              class="toy-input !py-2 !px-3 text-xs bg-[#FFFDF5]"
-            />
-          </div>
-
-          <!-- Đến ngày -->
-          <div>
-            <label class="block text-[11px] font-extrabold uppercase text-[#2D2A32]/70 mb-1">
-              Đến ngày
-            </label>
-            <input
-              type="date"
-              [ngModel]="draftEndDate()"
-              (ngModelChange)="onDraftDateChange('end', $event)"
-              class="toy-input !py-2 !px-3 text-xs bg-[#FFFDF5]"
-            />
-          </div>
-        </div>
-
-        <!-- Apply Filter Action Row + Open Dashboard Charts Popup Button -->
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2 border-t-2 border-dashed border-[#2D2A32]/15">
-          <div class="text-xs font-bold text-[#2D2A32]/75">
-            @if (hasPendingFilterChanges()) {
-              <span class="text-[#BE123C] font-extrabold">
-                ⚡ Bạn vừa đổi tiêu chí lọc — bấm "Áp dụng bộ lọc" để cập nhật số liệu nhé!
+        @if (filterOpen()) {
+          <div class="p-5 space-y-5">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b-2 border-dashed border-[#2D2A32]/15">
+              <span class="text-xs font-extrabold text-[#2D2A32]/75">
+                ⚡ Chọn nhanh mốc thời gian:
               </span>
-            } @else {
-              <span>
-                ✅ Đang hiển thị kết quả từ <strong>{{ appliedStartDate() || 'đầu' }}</strong> đến <strong>{{ appliedEndDate() }}</strong>
-              </span>
-            }
-          </div>
 
-          <div class="flex flex-wrap items-center gap-2.5">
-            <button
-              type="button"
-              (click)="applyFilters()"
-              class="toy-btn flex-1 sm:flex-initial px-5 py-2.5 text-sm font-extrabold"
-              [ngClass]="
-                hasPendingFilterChanges()
-                  ? 'bg-[#22C55E] text-white animate-bounce'
-                  : 'bg-[#FFB020] text-[#2D2A32]'
-              "
-            >
-              ✅ Áp dụng bộ lọc
-            </button>
+              <div class="flex flex-wrap items-center gap-1.5">
+                <button
+                  type="button"
+                  (click)="setThisMonthDraft()"
+                  class="px-3 py-1 rounded-xl border-2 border-[#2D2A32] font-display font-bold text-xs cursor-pointer transition-all"
+                  [ngClass]="
+                    draftRangePreset() === 'THIS_MONTH'
+                      ? 'bg-[#FFB020] shadow-[0_2px_0_#2D2A32]'
+                      : 'bg-[#FFFDF5] hover:bg-[#FEF3C7]'
+                  "
+                >
+                  📅 Tháng này
+                </button>
+                <button
+                  type="button"
+                  (click)="setAllTimeDraft()"
+                  class="px-3 py-1 rounded-xl border-2 border-[#2D2A32] font-display font-bold text-xs cursor-pointer transition-all"
+                  [ngClass]="
+                    draftRangePreset() === 'ALL_TIME'
+                      ? 'bg-[#FFB020] shadow-[0_2px_0_#2D2A32]'
+                      : 'bg-[#FFFDF5] hover:bg-[#FEF3C7]'
+                  "
+                >
+                  ♾️ Từ đầu tới nay
+                </button>
+                <button
+                  type="button"
+                  (click)="resetAndApplyFilters()"
+                  class="px-3 py-1 rounded-xl border-2 border-[#2D2A32] bg-white hover:bg-[#FFE4E6] font-display font-bold text-xs cursor-pointer"
+                >
+                  🔄 Đặt lại
+                </button>
+              </div>
+            </div>
 
-            <button
-              type="button"
-              (click)="openChartsModal()"
-              class="toy-btn flex-1 sm:flex-initial px-5 py-2.5 bg-[#38BDF8] hover:bg-[#0EA5E9] text-[#2D2A32] text-sm font-extrabold"
-            >
-              📊 Mở Dashboard Biểu Đồ
-            </button>
-          </div>
-        </div>
+            <!-- Filter Controls (Draft State) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+              <div>
+                <label class="block text-[11px] font-extrabold uppercase text-[#2D2A32]/70 mb-1">
+                  Loại giao dịch
+                </label>
+                <select
+                  [ngModel]="draftType()"
+                  (ngModelChange)="draftType.set($event)"
+                  class="toy-input !py-2 !px-3 text-xs bg-[#FFFDF5]"
+                >
+                  <option value="ALL">Tất cả Thu & Chi</option>
+                  <option value="INCOME">🌾 Chỉ khoản Thu</option>
+                  <option value="EXPENSE">🛒 Chỉ khoản Chi</option>
+                </select>
+              </div>
 
-        <!-- Filtered Period Results Cards (Inside Filter Box) -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-          <!-- Tổng Thu trong kỳ lọc -->
-          <div class="p-4 rounded-2xl border-2 border-[#2D2A32] bg-[#DCFCE7]/60 flex flex-col justify-between">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-extrabold uppercase text-[#15803D]">
-                🌾 Tổng Thu kỳ lọc
-              </span>
-              <span class="text-xl">📈</span>
-            </div>
-            <div class="money-num font-extrabold text-2xl text-[#15803D] mt-1">
-              {{ periodKpis().totalIncome | vnd: true : 'plus' }}
-            </div>
-            <div class="text-xs font-bold text-[#15803D] mt-2">
-              {{ periodKpis().incomeCount }} khoản thu
-            </div>
-          </div>
+              <div>
+                <label class="block text-[11px] font-extrabold uppercase text-[#2D2A32]/70 mb-1">
+                  Nguồn tiền / Ví
+                </label>
+                <select
+                  [ngModel]="draftWalletId()"
+                  (ngModelChange)="draftWalletId.set($event)"
+                  class="toy-input !py-2 !px-3 text-xs bg-[#FFFDF5]"
+                >
+                  <option value="ALL">👛 Tất cả ví</option>
+                  @for (w of walletService.walletsWithBalance(); track w.id) {
+                    <option [value]="w.id">
+                      {{ ownerMeta[w.owner_scope].emoji }} {{ w.name }}
+                    </option>
+                  }
+                </select>
+              </div>
 
-          <!-- Tổng Chi thực tế kỳ lọc -->
-          <div class="p-4 rounded-2xl border-2 border-[#2D2A32] bg-[#FFE4E6]/60 flex flex-col justify-between">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-extrabold uppercase text-[#BE123C]">
-                🛒 Tổng Chi thực tế
-              </span>
-              <span class="text-xl">💸</span>
-            </div>
-            <div class="money-num font-extrabold text-2xl text-[#BE123C] mt-1">
-              {{ periodKpis().netExpense | vnd: true : 'minus' }}
-            </div>
-            <div class="text-xs font-bold text-[#BE123C] mt-2">
-              {{ periodKpis().expenseCount }} khoản chi
-              @if (periodKpis().totalRefunded > 0) {
-                <span>(Đã hoàn: {{ periodKpis().totalRefunded | vnd }})</span>
-              }
-            </div>
-          </div>
+              <div>
+                <label class="block text-[11px] font-extrabold uppercase text-[#2D2A32]/70 mb-1">
+                  Danh mục
+                </label>
+                <select
+                  [ngModel]="draftCategoryId()"
+                  (ngModelChange)="draftCategoryId.set($event)"
+                  class="toy-input !py-2 !px-3 text-xs bg-[#FFFDF5]"
+                >
+                  <option value="ALL">🏷️ Tất cả danh mục</option>
+                  @for (c of categoryService.categories(); track c.id) {
+                    <option [value]="c.id">{{ c.icon }} {{ c.name }}</option>
+                  }
+                </select>
+              </div>
 
-          <!-- Số dư ròng & Tỉ lệ tiết kiệm kỳ lọc -->
-          <div class="p-4 rounded-2xl border-2 border-[#2D2A32] bg-[#FFF9EC] flex flex-col justify-between">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-extrabold uppercase text-[#2D2A32]/75">
-                ⚖️ Số dư ròng kỳ lọc
-              </span>
-              <span class="text-xl">🐷</span>
+              <div>
+                <label class="block text-[11px] font-extrabold uppercase text-[#2D2A32]/70 mb-1">
+                  Từ ngày
+                </label>
+                <input
+                  type="date"
+                  [ngModel]="draftStartDate()"
+                  (ngModelChange)="onDraftDateChange('start', $event)"
+                  class="toy-input !py-2 !px-3 text-xs bg-[#FFFDF5]"
+                />
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-extrabold uppercase text-[#2D2A32]/70 mb-1">
+                  Đến ngày
+                </label>
+                <input
+                  type="date"
+                  [ngModel]="draftEndDate()"
+                  (ngModelChange)="onDraftDateChange('end', $event)"
+                  class="toy-input !py-2 !px-3 text-xs bg-[#FFFDF5]"
+                />
+              </div>
             </div>
-            <div
-              class="money-num font-extrabold text-2xl mt-1"
-              [ngClass]="
-                periodKpis().netCashflow >= 0 ? 'text-[#15803D]' : 'text-[#BE123C]'
-              "
-            >
-              {{
-                periodKpis().netCashflow
-                  | vnd: true : (periodKpis().netCashflow >= 0 ? 'plus' : 'none')
-              }}
+
+            <!-- Apply Filter Action Row -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2 border-t-2 border-dashed border-[#2D2A32]/15">
+              <div class="text-xs font-bold text-[#2D2A32]/75">
+                @if (hasPendingFilterChanges()) {
+                  <span class="text-[#BE123C] font-extrabold">
+                    ⚡ Bạn vừa đổi tiêu chí lọc — bấm "Áp dụng bộ lọc" để cập nhật số liệu nhé!
+                  </span>
+                } @else {
+                  <span>
+                    ✅ Đang hiển thị kết quả từ <strong>{{ appliedStartDate() || 'đầu' }}</strong> đến <strong>{{ appliedEndDate() }}</strong>
+                  </span>
+                }
+              </div>
+
+              <button
+                type="button"
+                (click)="applyFilters()"
+                class="toy-btn px-6 py-2.5 text-sm font-extrabold"
+                [ngClass]="
+                  hasPendingFilterChanges()
+                    ? 'bg-[#22C55E] text-white animate-bounce'
+                    : 'bg-[#FFB020] text-[#2D2A32]'
+                "
+              >
+                ✅ Áp dụng bộ lọc
+              </button>
             </div>
-            <div class="text-xs font-bold text-[#2D2A32]/75 mt-2">
-              Tỉ lệ tiết kiệm:
-              <strong class="money-num">{{ periodKpis().savingsRate.toFixed(0) }}%</strong>
+
+            <!-- Filtered Period Results Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+              <div class="p-4 rounded-2xl border-2 border-[#2D2A32] bg-[#DCFCE7]/60 flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-extrabold uppercase text-[#15803D]">
+                    🌾 Tổng Thu kỳ lọc
+                  </span>
+                  <span class="text-xl">📈</span>
+                </div>
+                <div class="money-num font-extrabold text-2xl text-[#15803D] mt-1">
+                  {{ periodKpis().totalIncome | vnd: true : 'plus' }}
+                </div>
+                <div class="text-xs font-bold text-[#15803D] mt-2">
+                  {{ periodKpis().incomeCount }} khoản thu
+                </div>
+              </div>
+
+              <div class="p-4 rounded-2xl border-2 border-[#2D2A32] bg-[#FFE4E6]/60 flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-extrabold uppercase text-[#BE123C]">
+                    🛒 Tổng Chi thực tế
+                  </span>
+                  <span class="text-xl">💸</span>
+                </div>
+                <div class="money-num font-extrabold text-2xl text-[#BE123C] mt-1">
+                  {{ periodKpis().netExpense | vnd: true : 'minus' }}
+                </div>
+                <div class="text-xs font-bold text-[#BE123C] mt-2">
+                  {{ periodKpis().expenseCount }} khoản chi
+                  @if (periodKpis().totalRefunded > 0) {
+                    <span>(Đã hoàn: {{ periodKpis().totalRefunded | vnd }})</span>
+                  }
+                </div>
+              </div>
+
+              <div class="p-4 rounded-2xl border-2 border-[#2D2A32] bg-[#FFF9EC] flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-extrabold uppercase text-[#2D2A32]/75">
+                    ⚖️ Số dư ròng kỳ lọc
+                  </span>
+                  <span class="text-xl">🐷</span>
+                </div>
+                <div
+                  class="money-num font-extrabold text-2xl mt-1"
+                  [ngClass]="
+                    periodKpis().netCashflow >= 0 ? 'text-[#15803D]' : 'text-[#BE123C]'
+                  "
+                >
+                  {{
+                    periodKpis().netCashflow
+                      | vnd: true : (periodKpis().netCashflow >= 0 ? 'plus' : 'none')
+                  }}
+                </div>
+                <div class="text-xs font-bold text-[#2D2A32]/75 mt-2">
+                  Tỉ lệ tiết kiệm:
+                  <strong class="money-num">{{ periodKpis().savingsRate.toFixed(0) }}%</strong>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        }
       </div>
 
-      <!-- 4. Mini Wallet Cards Row -->
-      <div class="toy-card p-5 bg-white">
-        <div class="flex items-center justify-between mb-4">
+      <!-- ======================================================================= -->
+      <!-- 3B. KHUNG TÍNH NĂNG RIÊNG: BIỂU ĐỒ PHÂN TÍCH (BẤM VÀO HIỆN POPUP)       -->
+      <!-- ======================================================================= -->
+      <div
+        (click)="openChartsModal()"
+        class="toy-card-lg p-4 sm:p-5 bg-[#E0F2FE]/70 hover:bg-[#E0F2FE] flex items-center justify-between gap-3 cursor-pointer select-none transition-colors"
+      >
+        <div class="flex items-center gap-3 min-w-0">
+          <div
+            class="w-11 h-11 rounded-2xl bg-[#38BDF8] border-2 border-[#2D2A32] shadow-[0_2px_0_#2D2A32] flex items-center justify-center text-xl shrink-0"
+          >
+            📊
+          </div>
+          <div class="min-w-0">
+            <h3 class="font-display font-extrabold text-lg sm:text-xl text-[#2D2A32] truncate">
+              Biểu đồ phân tích Thu - Chi & Cơ cấu
+            </h3>
+            <p class="text-xs font-bold text-[#2D2A32]/70 truncate">
+              Bấm vào khung này để mở popup biểu đồ cột đôi & donut chi tiêu
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="toy-btn px-4 py-1.5 bg-[#38BDF8] text-[#2D2A32] text-xs font-extrabold shrink-0"
+        >
+          Mở biểu đồ 📈
+        </button>
+      </div>
+
+      <!-- ======================================================================= -->
+      <!-- 4. CHI TIẾT CÁC VÍ TRONG NHÀ (ĐÍCH CUỘN + NHÁY SÁNG + NÚT QUẢN LÝ VÍ)   -->
+      <!-- ======================================================================= -->
+      <div
+        #walletDetailsSection
+        class="toy-card p-5 bg-white transition-all"
+        [class.animate-wallet-flash]="walletSectionFlashing()"
+      >
+        <div class="flex items-center justify-between gap-3 mb-4">
           <div class="flex items-center gap-2">
             <span class="text-2xl">💳</span>
             <div>
@@ -476,6 +517,14 @@ Chart.register(
               </p>
             </div>
           </div>
+
+          <button
+            type="button"
+            (click)="openWalletManagerPopup()"
+            class="toy-btn px-4 py-2 bg-[#FFB020] hover:bg-[#FFA000] text-[#2D2A32] text-xs sm:text-sm font-extrabold shrink-0"
+          >
+            ⚙️ Quản lý ví
+          </button>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -486,7 +535,7 @@ Chart.register(
             >
               <div class="flex items-center justify-between gap-2">
                 <span class="font-display font-extrabold text-base text-[#2D2A32] truncate">
-                  {{ w.name }}
+                  {{ walletTypeMeta[w.wallet_type].emoji }} {{ w.name }}
                 </span>
                 <span
                   class="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-white border border-[#2D2A32] shrink-0"
@@ -503,7 +552,266 @@ Chart.register(
       </div>
 
       <!-- ======================================================================= -->
-      <!-- 5. POPUP MODAL: DASHBOARD BIỂU ĐỒ PHÂN TÍCH                             -->
+      <!-- 5. POPUP MODAL: QUẢN LÝ VÍ & NGUỒN TIỀN (Y HỆT TRANG VÍ & NHÀ)          -->
+      <!-- ======================================================================= -->
+      @if (walletManagerPopupOpen()) {
+        <div
+          class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-[#2D2A32]/65 backdrop-blur-xs overflow-y-auto"
+          (click)="walletManagerPopupOpen.set(false)"
+        >
+          <div
+            class="toy-card-lg w-full max-w-5xl p-4 sm:p-6 bg-[#FFFDF5] my-auto max-h-[92dvh] overflow-y-auto space-y-4"
+            (click)="$event.stopPropagation()"
+          >
+            <!-- Popup Header -->
+            <div class="toy-card p-4 sm:p-5 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h2 class="font-display font-extrabold text-xl sm:text-2xl text-[#2D2A32]">
+                  💳 Quản lý Ví & Nguồn tiền
+                </h2>
+                <p class="text-xs sm:text-sm font-bold text-[#2D2A32]/75">
+                  Thêm thoải mái TPBank, VietinBank, BIDV, Tiền mặt, Ví MoMo... gắn với Vợ / Chồng / Chung
+                </p>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  (click)="openWalletFormModal()"
+                  class="toy-btn px-4 py-2.5 bg-[#22C55E] text-white text-xs sm:text-sm font-extrabold"
+                >
+                  + Thêm ví mới
+                </button>
+                <button
+                  type="button"
+                  (click)="walletManagerPopupOpen.set(false)"
+                  class="toy-btn px-3 py-2 bg-white text-xs sm:text-sm font-extrabold"
+                >
+                  ✕ Đóng
+                </button>
+              </div>
+            </div>
+
+            <!-- Quick Bank / E-Wallet Presets Bar -->
+            <div class="toy-card p-3.5 bg-[#FFF9EC] flex flex-wrap items-center gap-2">
+              <span class="text-xs font-extrabold text-[#2D2A32]/75">⚡ Tạo nhanh nguồn tiền mẫu:</span>
+              @for (preset of walletPresets; track preset.name) {
+                <button
+                  type="button"
+                  (click)="openWalletPreset(preset)"
+                  class="px-3 py-1 rounded-xl border-2 border-[#2D2A32] bg-white hover:bg-[#FEF3C7] font-display font-bold text-xs cursor-pointer"
+                >
+                  {{ preset.emoji }} {{ preset.name }}
+                </button>
+              }
+            </div>
+
+            <!-- Wallets Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              @for (w of walletService.walletsWithBalance(); track w.id) {
+                <div
+                  class="toy-card p-5 bg-white flex flex-col justify-between space-y-4"
+                  [class.opacity-60]="w.is_archived"
+                >
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="flex items-center gap-2.5">
+                      <div
+                        class="w-12 h-12 rounded-2xl border-2 border-[#2D2A32] flex items-center justify-center text-2xl shrink-0"
+                        [style.backgroundColor]="ownerMeta[w.owner_scope].badgeBg"
+                      >
+                        {{ walletTypeMeta[w.wallet_type].emoji }}
+                      </div>
+                      <div>
+                        <div class="flex items-center gap-1.5">
+                          <h3 class="font-display font-extrabold text-lg text-[#2D2A32]">
+                            {{ w.name }}
+                          </h3>
+                          @if (w.is_archived) {
+                            <span class="px-2 py-0.5 rounded-full bg-gray-200 border border-[#2D2A32] text-[10px] font-extrabold">
+                              Đã ẩn
+                            </span>
+                          }
+                        </div>
+                        <span
+                          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-extrabold border border-[#2D2A32] mt-0.5"
+                          [style.backgroundColor]="ownerMeta[w.owner_scope].badgeBg"
+                        >
+                          {{ ownerMeta[w.owner_scope].emoji }} {{ ownerMeta[w.owner_scope].label }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="p-3 rounded-2xl bg-[#FFFDF5] border-2 border-[#2D2A32] space-y-1">
+                    <div class="flex items-center justify-between text-xs font-bold text-[#2D2A32]/70">
+                      <span>Số dư đầu kỳ:</span>
+                      <span class="money-num">{{ w.initial_balance | vnd }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-extrabold text-[#2D2A32]">Số dư thực tế:</span>
+                      <span class="money-num font-extrabold text-xl text-[#15803D]">
+                        {{ w.current_balance | vnd }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center justify-end gap-2">
+                    <button
+                      type="button"
+                      (click)="openWalletFormModal(w)"
+                      class="toy-btn px-3 py-1.5 bg-[#FFF9EC] text-xs font-extrabold"
+                    >
+                      ✏️ Sửa
+                    </button>
+                    <button
+                      type="button"
+                      (click)="toggleArchiveWallet(w)"
+                      class="toy-btn px-3 py-1.5 bg-[#E0F2FE] text-xs font-extrabold"
+                    >
+                      {{ w.is_archived ? '👁️ Hiện lại' : '📦 Ẩn (Lưu trữ)' }}
+                    </button>
+                    <button
+                      type="button"
+                      (click)="onDeleteWallet(w)"
+                      class="toy-btn px-3 py-1.5 bg-[#FFE4E6] text-xs font-extrabold"
+                    >
+                      🗑️ Xóa
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- NESTED MODAL: CREATE / EDIT WALLET -->
+      @if (walletFormModalOpen()) {
+        <div
+          class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#2D2A32]/65 backdrop-blur-xs"
+          (click)="walletFormModalOpen.set(false)"
+        >
+          <div
+            class="toy-card-lg w-full max-w-md p-6 bg-[#FFFDF5] space-y-4"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="flex items-center justify-between pb-3 border-b-2 border-dashed border-[#2D2A32]/20">
+              <h3 class="font-display font-extrabold text-xl text-[#2D2A32]">
+                {{ editingWallet() ? '✏️ Sửa thông tin Ví' : '💳 Thêm Ví / Nguồn tiền mới' }}
+              </h3>
+              <button
+                type="button"
+                (click)="walletFormModalOpen.set(false)"
+                class="toy-btn px-2.5 py-1 bg-white text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form (ngSubmit)="onSaveWallet()" class="space-y-3.5">
+              <div>
+                <label class="block text-xs font-extrabold uppercase text-[#2D2A32]/75 mb-1">
+                  Tên Ví / Ngân hàng *
+                </label>
+                <input
+                  type="text"
+                  name="walletName"
+                  [ngModel]="walletName()"
+                  (ngModelChange)="walletName.set($event)"
+                  placeholder="VD: TPBank Vợ, VietinBank Chồng, Ví MoMo, Tiền mặt..."
+                  required
+                  class="toy-input bg-white"
+                />
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-extrabold uppercase text-[#2D2A32]/75 mb-1">
+                    Chủ sở hữu *
+                  </label>
+                  <select
+                    name="walletOwner"
+                    [ngModel]="walletOwner()"
+                    (ngModelChange)="walletOwner.set($event)"
+                    class="toy-input bg-white"
+                  >
+                    <option value="WIFE">🐱 Vợ yêu</option>
+                    <option value="HUSBAND">🐶 Chồng yêu</option>
+                    <option value="SHARED">🐷 Quỹ chung</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-extrabold uppercase text-[#2D2A32]/75 mb-1">
+                    Loại nguồn tiền *
+                  </label>
+                  <select
+                    name="walletType"
+                    [ngModel]="walletType()"
+                    (ngModelChange)="walletType.set($event)"
+                    class="toy-input bg-white"
+                  >
+                    <option value="BANK">🏦 Ngân hàng</option>
+                    <option value="CASH">💵 Tiền mặt</option>
+                    <option value="EWALLET">📱 Ví điện tử</option>
+                    <option value="OTHER">🪙 Khác</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-extrabold uppercase text-[#2D2A32]/75 mb-1">
+                  Số dư đầu kỳ (VND)
+                </label>
+                <input
+                  type="text"
+                  inputmode="numeric"
+                  name="walletInitialDisplay"
+                  [ngModel]="walletInitialDisplay()"
+                  (ngModelChange)="walletInitialDisplay.set(formatVnd($event))"
+                  placeholder="0"
+                  class="toy-input money-num text-xl font-extrabold bg-white"
+                />
+                <div class="flex flex-wrap items-center gap-1.5 mt-2">
+                  <button
+                    type="button"
+                    (click)="onAppendZerosWallet()"
+                    class="px-3 py-1 text-xs font-extrabold rounded-xl border-2 border-[#2D2A32] bg-[#FFB020] hover:bg-[#FFA000] text-[#2D2A32] shadow-[0_2px_0_#2D2A32] cursor-pointer money-num"
+                  >
+                    .000 (×1000)
+                  </button>
+                  <button
+                    type="button"
+                    (click)="walletInitialDisplay.set('0')"
+                    class="px-2.5 py-1 text-xs font-extrabold rounded-xl border border-[#2D2A32] bg-white cursor-pointer"
+                  >
+                    Đặt về 0
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  (click)="walletFormModalOpen.set(false)"
+                  class="toy-btn px-4 py-2 bg-white text-sm"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  [disabled]="submittingWallet()"
+                  class="toy-btn px-5 py-2 bg-[#22C55E] text-white text-sm font-extrabold"
+                >
+                  {{ submittingWallet() ? '⏳ Đang lưu...' : '💾 Lưu Ví' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      }
+
+      <!-- ======================================================================= -->
+      <!-- 6. POPUP MODAL: DASHBOARD BIỂU ĐỒ PHÂN TÍCH                             -->
       <!-- ======================================================================= -->
       @if (chartsModalOpen()) {
         <div
@@ -632,13 +940,46 @@ export class DashboardComponent implements OnDestroy {
   readonly transactionService = inject(TransactionService);
   readonly debtLoanService = inject(DebtLoanService);
   readonly dataSync = inject(DataSyncService);
+  private readonly toast = inject(ToastService);
 
   @ViewChild('cashflowCanvas') cashflowCanvas?: ElementRef<HTMLCanvasElement>;
   @ViewChild('donutCanvas') donutCanvas?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('walletDetailsSection') walletDetailsSection?: ElementRef<HTMLElement>;
 
   readonly ownerMeta = OWNER_SCOPE_META;
+  readonly walletTypeMeta = WALLET_TYPE_META;
 
-  // Draft Filter Controls (Edited by user before clicking "Áp dụng bộ lọc")
+  readonly walletPresets: {
+    name: string;
+    type: WalletType;
+    scope: OwnerScope;
+    emoji: string;
+  }[] = [
+    { name: 'TPBank', type: 'BANK', scope: 'WIFE', emoji: '🟣' },
+    { name: 'VietinBank', type: 'BANK', scope: 'HUSBAND', emoji: '🔵' },
+    { name: 'BIDV', type: 'BANK', scope: 'SHARED', emoji: '🏦' },
+    { name: 'Tiền mặt', type: 'CASH', scope: 'SHARED', emoji: '💵' },
+    { name: 'Ví MoMo', type: 'EWALLET', scope: 'WIFE', emoji: '📱' },
+  ];
+
+  // Scroll + 1.6s Temporary Flash Highlight State
+  readonly walletSectionFlashing = signal<boolean>(false);
+  private flashTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  // Collapsible Filter Bar State (Default CLOSED as requested)
+  readonly filterOpen = signal<boolean>(false);
+
+  // Wallet Manager Popup & Nested Form State
+  readonly walletManagerPopupOpen = signal<boolean>(false);
+  readonly walletFormModalOpen = signal<boolean>(false);
+  readonly editingWallet = signal<WalletWithBalance | null>(null);
+  readonly walletName = signal<string>('');
+  readonly walletOwner = signal<OwnerScope>('SHARED');
+  readonly walletType = signal<WalletType>('BANK');
+  readonly walletInitialDisplay = signal<string>('0');
+  readonly submittingWallet = signal<boolean>(false);
+
+  // Draft Filter Controls
   readonly draftRangePreset = signal<'THIS_MONTH' | 'ALL_TIME' | 'CUSTOM'>('ALL_TIME');
   readonly draftType = signal<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
   readonly draftWalletId = signal<string>('ALL');
@@ -646,7 +987,7 @@ export class DashboardComponent implements OnDestroy {
   readonly draftStartDate = signal<string>('');
   readonly draftEndDate = signal<string>(this.todayIso());
 
-  // Applied Filter State (Drives KPIs & Charts only after clicking "Áp dụng bộ lọc")
+  // Applied Filter State
   readonly appliedType = signal<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
   readonly appliedWalletId = signal<string>('ALL');
   readonly appliedCategoryId = signal<string>('ALL');
@@ -671,6 +1012,144 @@ export class DashboardComponent implements OnDestroy {
     });
   }
 
+  /**
+   * Smoothly scroll down to "Chi Tiết Các Ví Trong Nhà" and flash-highlight it for 1.6s
+   */
+  scrollToWalletDetails(): void {
+    const el = this.walletDetailsSection?.nativeElement;
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // Trigger 1.6s flash animation and reset back to normal
+    if (this.flashTimeout) {
+      clearTimeout(this.flashTimeout);
+    }
+    this.walletSectionFlashing.set(false);
+    setTimeout(() => {
+      this.walletSectionFlashing.set(true);
+      this.flashTimeout = setTimeout(() => {
+        this.walletSectionFlashing.set(false);
+      }, 1650);
+    }, 50);
+  }
+
+  // --- Wallet Manager Popup Methods (Identical to Ví & Nhà -> Ví & Nguồn tiền) ---
+  openWalletManagerPopup(): void {
+    this.walletManagerPopupOpen.set(true);
+  }
+
+  formatVnd(val: string): string {
+    return formatVndInput(val);
+  }
+
+  onAppendZerosWallet(): void {
+    const next = appendThreeZeros(this.walletInitialDisplay());
+    if (next) {
+      this.walletInitialDisplay.set(next);
+    }
+  }
+
+  openWalletFormModal(w?: WalletWithBalance): void {
+    this.submittingWallet.set(false);
+    if (w) {
+      this.editingWallet.set(w);
+      this.walletName.set(w.name);
+      this.walletOwner.set(w.owner_scope);
+      this.walletType.set(w.wallet_type);
+      this.walletInitialDisplay.set(formatVndInput(w.initial_balance));
+    } else {
+      this.editingWallet.set(null);
+      this.walletName.set('');
+      this.walletOwner.set('SHARED');
+      this.walletType.set('BANK');
+      this.walletInitialDisplay.set('0');
+    }
+    this.walletFormModalOpen.set(true);
+  }
+
+  openWalletPreset(preset: {
+    name: string;
+    type: WalletType;
+    scope: OwnerScope;
+  }): void {
+    this.submittingWallet.set(false);
+    this.editingWallet.set(null);
+    this.walletName.set(preset.name);
+    this.walletType.set(preset.type);
+    this.walletOwner.set(preset.scope);
+    this.walletInitialDisplay.set('0');
+    this.walletFormModalOpen.set(true);
+  }
+
+  async onSaveWallet(): Promise<void> {
+    if (this.submittingWallet()) return;
+    if (!this.walletName().trim()) {
+      this.toast.show('warning', 'Thiếu tên ví! 💳', 'Hãy nhập tên ví hoặc ngân hàng.');
+      return;
+    }
+
+    this.submittingWallet.set(true);
+    try {
+      const initial = parseVndInput(this.walletInitialDisplay());
+      const edit = this.editingWallet();
+      if (edit) {
+        await this.walletService.updateWallet(edit.id, {
+          name: this.walletName(),
+          owner_scope: this.walletOwner(),
+          wallet_type: this.walletType(),
+          initial_balance: initial,
+        });
+        this.toast.show('success', 'Đã cập nhật ví! ✨', 'Thông tin ví đã được lưu.');
+      } else {
+        await this.walletService.createWallet({
+          name: this.walletName(),
+          owner_scope: this.walletOwner(),
+          wallet_type: this.walletType(),
+          initial_balance: initial,
+        });
+        this.toast.show('success', 'Đã thêm ví mới! 💳', `Ví "${this.walletName()}" đã sẵn sàng.`);
+      }
+      this.walletFormModalOpen.set(false);
+    } catch (err: any) {
+      this.toast.show('error', 'Không thể lưu ví! 🚨', err?.message || 'Vui lòng thử lại.');
+    } finally {
+      this.submittingWallet.set(false);
+    }
+  }
+
+  async toggleArchiveWallet(w: Wallet): Promise<void> {
+    try {
+      await this.walletService.updateWallet(w.id, {
+        is_archived: !w.is_archived,
+      });
+      this.toast.show(
+        'info',
+        w.is_archived ? 'Đã mở lại ví! 👁️' : 'Đã ẩn (lưu trữ) ví! 📦',
+        `Ví "${w.name}" đã được cập nhật trạng thái.`
+      );
+    } catch (err: any) {
+      this.toast.show('error', 'Lỗi cập nhật! 🚨', err?.message || 'Vui lòng thử lại.');
+    }
+  }
+
+  async onDeleteWallet(w: Wallet): Promise<void> {
+    if (!confirm(`Bạn có chắc muốn xóa ví "${w.name}" không?`)) return;
+    try {
+      await this.walletService.deleteWallet(w.id);
+      this.toast.show('info', 'Đã xóa ví! 🗑️', `Ví "${w.name}" đã được xóa.`);
+    } catch (err: any) {
+      this.toast.show(
+        'warning',
+        'Không thể xóa ví này! 🛡️',
+        err?.message ||
+          'Không thể xóa vì đã có giao dịch gắn với mục này. Bạn có thể chọn Ẩn (Lưu trữ) thay thế.',
+        7000
+      );
+    }
+  }
+
+  // --- Filter & Chart Methods ---
   readonly hasPendingFilterChanges = computed(() => {
     return (
       this.draftType() !== this.appliedType() ||
@@ -810,7 +1289,6 @@ export class DashboardComponent implements OnDestroy {
     const kpi = this.periodKpis();
     if (kpi.totalTxCount === 0) return 'SLEEPY';
     if (kpi.netExpense > kpi.totalIncome) return 'BROKE';
-    // Smart context: If user shopped multiple times today (>= 2 orders or >= 300k today), react to today's shopping!
     if (kpi.todayExpenseCount >= 2 || kpi.todayNetExpense >= 300_000) {
       return 'SHOPPING_SPREE';
     }
@@ -931,6 +1409,9 @@ export class DashboardComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.flashTimeout) {
+      clearTimeout(this.flashTimeout);
+    }
     this.destroyCharts();
   }
 
@@ -998,7 +1479,6 @@ export class DashboardComponent implements OnDestroy {
         maintainAspectRatio: false,
         events: ['mousemove', 'mouseout', 'click', 'touchstart', 'touchmove'],
         onClick: (_event, elements, chart) => {
-          // If user taps empty space inside the chart, dismiss sticky tooltip on mobile
           if (!elements || elements.length === 0) {
             chart.setActiveElements([]);
             chart.tooltip?.setActiveElements([], { x: 0, y: 0 });

@@ -93,7 +93,7 @@ import {
                   inputmode="numeric"
                   [ngModel]="refundAmountDisplay()"
                   (ngModelChange)="onAmountChange($event)"
-                  placeholder="Nhập số tiền hoàn..."
+                  placeholder="0"
                   class="toy-input money-num text-2xl font-extrabold text-[#15803D] bg-white pr-14"
                 />
                 <span

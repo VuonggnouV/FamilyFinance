@@ -222,67 +222,93 @@ const MOOD_QUOTES: Record<PiggyMood, MascotLine[]> = {
         'bg-gradient-to-br from-[#FFF9EC] via-[#FFFDF5] to-[#EDE9FE]': mood === 'SLEEPY'
       }"
     >
+      <!-- Floating Animated Background Decor Stickers -->
+      <div class="pointer-events-none select-none absolute right-3 top-2 text-xl opacity-35 animate-float">
+        {{ currentLine().emoji }}
+      </div>
+
       <div class="flex flex-col sm:flex-row items-center gap-5">
-        <!-- Custom Crisp SVG Piggy Mascot (Click to randomize quote!) -->
+        <!-- Animated Interactive SVG Piggy Mascot (Click to Jelly-Pop & Randomize!) -->
         <div
           (click)="nextRandomQuote()"
-          title="Bấm vào Heo Đất để nghe phán câu khác!"
-          class="w-28 h-28 sm:w-32 sm:h-32 shrink-0 animate-float select-none cursor-pointer active:scale-95 transition-transform"
+          title="Chạm vào Heo Đất để xem hiệu ứng & phán câu khác!"
+          class="w-32 h-32 sm:w-36 sm:h-36 shrink-0 select-none cursor-pointer relative"
+          [class.animate-jelly-pop]="popping()"
         >
           @switch (mood) {
             @case ('RICH') {
-              <!-- Heo đeo kính râm ôm cọc tiền 😎 -->
-              <svg viewBox="0 0 140 140" class="w-full h-full">
+              <!-- Heo Đại Gia Nhún Nhảy Disco + Đồng Xu Rơi Vào Lưng + Kim Cương Bay 😎💎💸 -->
+              <svg viewBox="0 0 140 140" class="w-full h-full animate-piggy-dance">
                 <circle cx="70" cy="72" r="56" fill="#FEF3C7" stroke="#2D2A32" stroke-width="3" stroke-dasharray="6 4"/>
+                <!-- Falling Gold Coin into Piggy Slot (Animated) -->
+                <g class="animate-coin-drop">
+                  <circle cx="70" cy="16" r="9" fill="#FFB020" stroke="#2D2A32" stroke-width="2.5"/>
+                  <text x="66" y="20" font-size="11" font-weight="900" fill="#2D2A32">₫</text>
+                </g>
+                <!-- Ears -->
                 <path d="M35 44 L22 22 L48 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
                 <path d="M105 44 L118 22 L92 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
+                <!-- Head -->
                 <circle cx="70" cy="74" r="42" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4"/>
-                <rect x="56" y="25" width="28" height="7" rx="3.5" fill="#FFB020" stroke="#2D2A32" stroke-width="3"/>
+                <!-- Coin Slot -->
+                <rect x="56" y="26" width="28" height="7" rx="3.5" fill="#2D2A32"/>
+                <!-- Cool Sunglasses 😎 -->
                 <path d="M32 60 H108" stroke="#2D2A32" stroke-width="4" stroke-linecap="round"/>
                 <rect x="38" y="54" width="26" height="17" rx="5" fill="#2D2A32"/>
                 <rect x="76" y="54" width="26" height="17" rx="5" fill="#2D2A32"/>
                 <path d="M43 58 L50 67" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round"/>
                 <path d="M81 58 L88 67" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round"/>
+                <!-- Snout -->
                 <ellipse cx="70" cy="80" rx="16" ry="11" fill="#FFB3C6" stroke="#2D2A32" stroke-width="3.5"/>
                 <circle cx="64" cy="80" r="3" fill="#2D2A32"/>
                 <circle cx="76" cy="80" r="3" fill="#2D2A32"/>
+                <!-- Confident Smile -->
                 <path d="M56 97 Q70 107 84 97" fill="none" stroke="#2D2A32" stroke-width="3.5" stroke-linecap="round"/>
+                <!-- Stack of VND Cash -->
                 <rect x="44" y="104" width="52" height="22" rx="6" fill="#22C55E" stroke="#2D2A32" stroke-width="3.5"/>
                 <rect x="64" y="104" width="12" height="22" fill="#FEF3C7" stroke="#2D2A32" stroke-width="3"/>
-                <text x="112" y="42" font-size="18">💸</text>
-                <text x="10" y="95" font-size="18">💎</text>
+                <text x="110" y="42" font-size="18" class="animate-float">💸</text>
+                <text x="10" y="96" font-size="18" class="animate-bell">💎</text>
               </svg>
             }
 
             @case ('SHOPPING_SPREE') {
-              <!-- Heo săn sale ôm thùng hàng toát mồ hôi hột 🛍️📦💦 -->
-              <svg viewBox="0 0 140 140" class="w-full h-full">
+              <!-- Heo Săn Sale Rung Lắc + Mồ Hôi Rơi + Thùng Hàng Nhảy Tưng Tưng 🛍️📦💦 -->
+              <svg viewBox="0 0 140 140" class="w-full h-full animate-piggy-dance">
                 <circle cx="70" cy="72" r="56" fill="#FEF3C7" stroke="#2D2A32" stroke-width="3"/>
                 <path d="M35 44 L22 22 L48 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
                 <path d="M105 44 L118 22 L92 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
                 <circle cx="70" cy="74" r="42" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4"/>
-                <!-- Wide excited/shocked shopping eyes -->
-                <circle cx="49" cy="60" r="8" fill="#FFFFFF" stroke="#2D2A32" stroke-width="3.5"/>
-                <circle cx="91" cy="60" r="8" fill="#FFFFFF" stroke="#2D2A32" stroke-width="3.5"/>
-                <circle cx="49" cy="60" r="3.5" fill="#2D2A32"/>
-                <circle cx="91" cy="60" r="3.5" fill="#2D2A32"/>
-                <!-- Sweat drop 💦 -->
-                <path d="M104 44 Q112 54 104 60 Q96 54 104 44 Z" fill="#38BDF8" stroke="#2D2A32" stroke-width="2.5"/>
+                <!-- Wide excited shopping eyes -->
+                <circle cx="49" cy="60" r="8.5" fill="#FFFFFF" stroke="#2D2A32" stroke-width="3.5"/>
+                <circle cx="91" cy="60" r="8.5" fill="#FFFFFF" stroke="#2D2A32" stroke-width="3.5"/>
+                <circle cx="49" cy="60" r="4" fill="#2D2A32"/>
+                <circle cx="91" cy="60" r="4" fill="#2D2A32"/>
+                <!-- Animated Falling Sweat Drop 💦 -->
+                <path
+                  class="animate-sweat-drop"
+                  d="M104 40 Q112 50 104 56 Q96 50 104 40 Z"
+                  fill="#38BDF8"
+                  stroke="#2D2A32"
+                  stroke-width="2.5"
+                />
                 <!-- Snout -->
                 <ellipse cx="70" cy="78" rx="15" ry="10" fill="#FFB3C6" stroke="#2D2A32" stroke-width="3.5"/>
                 <circle cx="65" cy="78" r="2.5" fill="#2D2A32"/>
                 <circle cx="75" cy="78" r="2.5" fill="#2D2A32"/>
-                <!-- Parcel Box & Shopping Bag in front 📦🛍️ -->
-                <rect x="42" y="98" width="56" height="28" rx="5" fill="#FFB020" stroke="#2D2A32" stroke-width="3.5"/>
-                <line x1="70" y1="98" x2="70" y2="126" stroke="#2D2A32" stroke-width="3"/>
-                <text x="108" y="40" font-size="18">🛍️</text>
-                <text x="10" y="42" font-size="18">📦</text>
+                <!-- Bouncing Shopee Parcel Box -->
+                <g class="animate-float">
+                  <rect x="42" y="98" width="56" height="28" rx="5" fill="#FFB020" stroke="#2D2A32" stroke-width="3.5"/>
+                  <line x1="70" y1="98" x2="70" y2="126" stroke="#2D2A32" stroke-width="3"/>
+                </g>
+                <text x="108" y="40" font-size="18" class="animate-bell">🛍️</text>
+                <text x="10" y="42" font-size="18" class="animate-float">📦</text>
               </svg>
             }
 
             @case ('TIGHT') {
-              <!-- Heo ôm tô mì tôm trứng thắt lưng buộc bụng 🍜🥚 -->
-              <svg viewBox="0 0 140 140" class="w-full h-full">
+              <!-- Heo Ôm Tô Mì Tôm Bốc Khói Nghi Ngút 🍜🥚💨 -->
+              <svg viewBox="0 0 140 140" class="w-full h-full animate-float">
                 <circle cx="70" cy="72" r="56" fill="#FEF3C7" stroke="#2D2A32" stroke-width="3"/>
                 <path d="M35 44 L24 24 L48 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
                 <path d="M105 44 L116 24 L92 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
@@ -292,20 +318,31 @@ const MOOD_QUOTES: Record<PiggyMood, MascotLine[]> = {
                 <line x1="100" y1="52" x2="84" y2="56" stroke="#2D2A32" stroke-width="3.5" stroke-linecap="round"/>
                 <circle cx="49" cy="62" r="4" fill="#2D2A32"/>
                 <circle cx="91" cy="62" r="4" fill="#2D2A32"/>
+                <!-- Animated Sweat Drop -->
+                <path
+                  class="animate-sweat-drop"
+                  d="M103 44 Q110 52 103 58 Q96 52 103 44 Z"
+                  fill="#38BDF8"
+                  stroke="#2D2A32"
+                  stroke-width="2"
+                />
                 <!-- Snout -->
                 <ellipse cx="70" cy="76" rx="15" ry="10" fill="#FFB3C6" stroke="#2D2A32" stroke-width="3.5"/>
                 <circle cx="65" cy="76" r="2.5" fill="#2D2A32"/>
                 <circle cx="75" cy="76" r="2.5" fill="#2D2A32"/>
+                <!-- Animated Rising Hot Steam from Noodle Bowl -->
+                <path class="animate-steam-1" d="M58 98 Q54 90 60 84" fill="none" stroke="#2D2A32" stroke-width="2.5" stroke-linecap="round"/>
+                <path class="animate-steam-2" d="M82 98 Q86 90 80 84" fill="none" stroke="#2D2A32" stroke-width="2.5" stroke-linecap="round"/>
                 <!-- Noodle Bowl 🍜 -->
                 <path d="M44 102 H96 L88 124 H52 Z" fill="#FF5C6C" stroke="#2D2A32" stroke-width="3.5" stroke-linejoin="round"/>
-                <text x="108" y="42" font-size="18">🍜</text>
+                <text x="108" y="42" font-size="18" class="animate-bell">🍜</text>
                 <text x="10" y="96" font-size="18">🥚</text>
               </svg>
             }
 
             @case ('CHILL') {
-              <!-- Heo gật gù uống trà sữa 🧋 -->
-              <svg viewBox="0 0 140 140" class="w-full h-full">
+              <!-- Heo Hút Trà Sữa Trân Châu Chạy Lên Ống Hút 🧋✨ -->
+              <svg viewBox="0 0 140 140" class="w-full h-full animate-float">
                 <circle cx="70" cy="72" r="56" fill="#E0F2FE" stroke="#2D2A32" stroke-width="3"/>
                 <path d="M35 44 L24 24 L48 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
                 <path d="M105 44 L116 24 L92 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
@@ -318,40 +355,51 @@ const MOOD_QUOTES: Record<PiggyMood, MascotLine[]> = {
                 <circle cx="65" cy="78" r="2.8" fill="#2D2A32"/>
                 <circle cx="75" cy="78" r="2.8" fill="#2D2A32"/>
                 <circle cx="75" cy="96" r="4" fill="#2D2A32"/>
+                <!-- Straw & Animated Pearl Moving Up -->
                 <path d="M76 96 L94 84" stroke="#FF5C6C" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="90" cy="94" r="3" fill="#2D2A32" class="animate-boba-suck"/>
+                <!-- Boba Cup -->
                 <rect x="88" y="88" width="24" height="32" rx="6" fill="#FDE68A" stroke="#2D2A32" stroke-width="3.5"/>
                 <path d="M85 88 H115" stroke="#2D2A32" stroke-width="4" stroke-linecap="round"/>
                 <circle cx="95" cy="112" r="2.5" fill="#2D2A32"/>
                 <circle cx="101" cy="114" r="2.5" fill="#2D2A32"/>
                 <circle cx="106" cy="111" r="2.5" fill="#2D2A32"/>
+                <text x="12" y="42" font-size="16" class="animate-zzz-1">🎵</text>
               </svg>
             }
 
             @case ('BROKE') {
-              <!-- Heo khóc ròng ôm ví rỗng có con ruồi bay ra 😭💸 -->
+              <!-- Heo Khóc Thác Nước Chảy Ròng Ròng + Con Ruồi Bay Vòng Quanh Ví Rỗng 😭💸🪰 -->
               <svg viewBox="0 0 140 140" class="w-full h-full">
                 <circle cx="70" cy="72" r="56" fill="#FFE4E6" stroke="#2D2A32" stroke-width="3"/>
                 <path d="M35 48 L18 38 L45 36 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
                 <path d="M105 48 L122 38 L95 36 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
                 <circle cx="70" cy="74" r="42" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4"/>
-                <path d="M46 65 V102" stroke="#38BDF8" stroke-width="7" stroke-linecap="round"/>
-                <path d="M94 65 V102" stroke="#38BDF8" stroke-width="7" stroke-linecap="round"/>
+                <!-- Animated Flowing Waterfall Tears 😭 -->
+                <path d="M46 65 V104" stroke="#E0F2FE" stroke-width="8" stroke-linecap="round"/>
+                <path d="M94 65 V104" stroke="#E0F2FE" stroke-width="8" stroke-linecap="round"/>
+                <path class="animate-tears-flow" d="M46 65 V104" stroke="#38BDF8" stroke-width="6" stroke-linecap="round"/>
+                <path class="animate-tears-flow" d="M94 65 V104" stroke="#38BDF8" stroke-width="6" stroke-linecap="round"/>
                 <circle cx="46" cy="60" r="4.5" fill="#2D2A32"/>
                 <circle cx="94" cy="60" r="4.5" fill="#2D2A32"/>
                 <ellipse cx="70" cy="77" rx="15" ry="10" fill="#FFB3C6" stroke="#2D2A32" stroke-width="3.5"/>
                 <circle cx="65" cy="77" r="2.5" fill="#2D2A32"/>
                 <circle cx="75" cy="77" r="2.5" fill="#2D2A32"/>
                 <path d="M58 98 Q70 89 82 98" fill="none" stroke="#2D2A32" stroke-width="3.5" stroke-linecap="round"/>
+                <!-- Empty Wallet -->
                 <rect x="50" y="105" width="40" height="20" rx="5" fill="#D4C5B9" stroke="#2D2A32" stroke-width="3"/>
                 <path d="M88 100 Q98 85 112 90" fill="none" stroke="#2D2A32" stroke-width="2" stroke-dasharray="3 3"/>
-                <circle cx="115" cy="88" r="3.5" fill="#2D2A32"/>
-                <ellipse cx="113" cy="84" rx="3" ry="2" fill="#FFFFFF" stroke="#2D2A32" stroke-width="1.5"/>
-                <ellipse cx="117" cy="84" rx="3" ry="2" fill="#FFFFFF" stroke="#2D2A32" stroke-width="1.5"/>
+                <!-- Animated Orbiting Little Fly 🪰 -->
+                <g class="animate-fly-orbit">
+                  <circle cx="115" cy="88" r="3.5" fill="#2D2A32"/>
+                  <ellipse cx="113" cy="84" rx="3" ry="2" fill="#FFFFFF" stroke="#2D2A32" stroke-width="1.5"/>
+                  <ellipse cx="117" cy="84" rx="3" ry="2" fill="#FFFFFF" stroke="#2D2A32" stroke-width="1.5"/>
+                </g>
               </svg>
             }
 
             @default {
-              <!-- Heo nằm ngủ khò khò 💤 (SLEEPY) -->
+              <!-- Heo Ngủ Khò Bong Bóng Mũi Phập Phồng & Chữ Zzz Bay Lên 💤🫧 -->
               <svg viewBox="0 0 140 140" class="w-full h-full">
                 <circle cx="70" cy="72" r="56" fill="#EDE9FE" stroke="#2D2A32" stroke-width="3"/>
                 <path d="M35 44 L24 24 L48 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
@@ -359,18 +407,30 @@ const MOOD_QUOTES: Record<PiggyMood, MascotLine[]> = {
                 <circle cx="70" cy="76" r="42" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4"/>
                 <path d="M43 62 Q50 69 57 62" fill="none" stroke="#2D2A32" stroke-width="3.5" stroke-linecap="round"/>
                 <path d="M83 62 Q90 69 97 62" fill="none" stroke="#2D2A32" stroke-width="3.5" stroke-linecap="round"/>
-                <circle cx="96" cy="76" r="9" fill="#E0F2FE" stroke="#2D2A32" stroke-width="2.5" opacity="0.9"/>
+                <!-- Snout -->
                 <ellipse cx="70" cy="80" rx="15" ry="10" fill="#FFB3C6" stroke="#2D2A32" stroke-width="3.5"/>
                 <circle cx="65" cy="80" r="2.5" fill="#2D2A32"/>
                 <circle cx="75" cy="80" r="2.5" fill="#2D2A32"/>
-                <text x="98" y="38" font-family="Baloo 2, cursive" font-weight="800" font-size="18" fill="#2D2A32">Zzz</text>
+                <!-- Animated Breathing Snot Bubble 🫧 -->
+                <circle
+                  class="animate-snot-bubble"
+                  cx="96"
+                  cy="76"
+                  r="10"
+                  fill="#E0F2FE"
+                  stroke="#2D2A32"
+                  stroke-width="2.5"
+                />
+                <!-- Animated Floating Zzz -->
+                <text x="95" y="42" class="animate-zzz-1" font-family="Baloo 2, cursive" font-weight="800" font-size="16" fill="#2D2A32">Zzz</text>
+                <text x="104" y="32" class="animate-zzz-2" font-family="Baloo 2, cursive" font-weight="800" font-size="13" fill="#6D28D9">zZ</text>
               </svg>
             }
           }
         </div>
 
         <!-- Speech Bubble & Status Badge -->
-        <div class="flex-1 text-center sm:text-left space-y-2">
+        <div class="flex-1 text-center sm:text-left space-y-2.5">
           <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
             <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border-2 border-[#2D2A32] bg-white shadow-[0_2px_0_#2D2A32]">
               <span class="text-lg">{{ currentLine().emoji }}</span>
@@ -382,8 +442,8 @@ const MOOD_QUOTES: Record<PiggyMood, MascotLine[]> = {
             <button
               type="button"
               (click)="nextRandomQuote()"
-              class="px-2.5 py-1 rounded-full border-2 border-[#2D2A32] bg-[#FFF9EC] hover:bg-[#FEF3C7] active:translate-y-0.5 font-display font-extrabold text-xs text-[#2D2A32] cursor-pointer"
-              title="Đổi câu thoại khác"
+              class="px-3 py-1 rounded-full border-2 border-[#2D2A32] bg-[#FFF9EC] hover:bg-[#FEF3C7] active:translate-y-0.5 font-display font-extrabold text-xs text-[#2D2A32] cursor-pointer shadow-[0_2px_0_#2D2A32]"
+              title="Đổi câu thoại & hiệu ứng khác"
             >
               🎲 Phán câu khác
             </button>
@@ -408,12 +468,14 @@ export class PiggyMascotComponent implements OnChanges {
 
   private readonly moodSignal = signal<PiggyMood>('SLEEPY');
   private readonly quoteIndex = signal<number>(0);
+  readonly popping = signal<boolean>(false);
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['mood']) {
       this.moodSignal.set(this.mood);
       const pool = MOOD_QUOTES[this.mood] || MOOD_QUOTES.SLEEPY;
       this.quoteIndex.set(Math.floor(Math.random() * pool.length));
+      this.triggerJellyPop();
     } else if (changes['triggerCount']) {
       this.nextRandomQuote();
     }
@@ -421,13 +483,23 @@ export class PiggyMascotComponent implements OnChanges {
 
   nextRandomQuote(): void {
     const pool = MOOD_QUOTES[this.moodSignal()] || MOOD_QUOTES.SLEEPY;
-    if (pool.length <= 1) return;
-    const current = this.quoteIndex();
-    let next = Math.floor(Math.random() * pool.length);
-    if (next === current) {
-      next = (current + 1) % pool.length;
+    if (pool.length > 1) {
+      const current = this.quoteIndex();
+      let next = Math.floor(Math.random() * pool.length);
+      if (next === current) {
+        next = (current + 1) % pool.length;
+      }
+      this.quoteIndex.set(next);
     }
-    this.quoteIndex.set(next);
+    this.triggerJellyPop();
+  }
+
+  private triggerJellyPop(): void {
+    this.popping.set(false);
+    setTimeout(() => {
+      this.popping.set(true);
+      setTimeout(() => this.popping.set(false), 560);
+    }, 10);
   }
 
   readonly currentLine = computed(() => {

@@ -25,7 +25,7 @@ import { VndPipe } from '../../shared/pipes/vnd.pipe';
     VndPipe,
   ],
   template: `
-    <div class="space-y-6">
+    <div class="space-y-7 sm:space-y-8">
       <!-- Page Header & Quick Action Buttons -->
       <div class="toy-card-lg p-5 sm:p-6 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div class="flex items-center gap-3">
@@ -69,93 +69,123 @@ import { VndPipe } from '../../shared/pipes/vnd.pipe';
         </div>
       </div>
 
-      <!-- Filter Bar with Apply Button -->
-      <div class="toy-card p-4 bg-white space-y-3">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
-          <!-- Search input -->
-          <div class="lg:col-span-2">
-            <label class="block text-[11px] font-extrabold uppercase text-[#2D2A32]/70 mb-1">
-              Tìm kiếm nội dung
-            </label>
-            <input
-              type="text"
-              [ngModel]="draftSearch()"
-              (ngModelChange)="draftSearch.set($event)"
-              placeholder="🔎 Tìm tên món đồ, ghi chú..."
-              class="toy-input !py-1.5 !px-3 text-xs bg-[#FFFDF5]"
-            />
+      <!-- Collapsible Filter Bar (Default Closed, Click to Open) -->
+      <div class="toy-card-lg bg-white overflow-hidden">
+        <div
+          (click)="filterOpen.set(!filterOpen())"
+          class="p-4 sm:p-5 bg-[#FFF9EC] flex items-center justify-between gap-3 cursor-pointer select-none hover:bg-[#FEF3C7]/60 transition-colors"
+          [class.border-b-2]="filterOpen()"
+          [class.border-[#2D2A32]]="filterOpen()"
+        >
+          <div class="flex items-center gap-2.5">
+            <span class="text-2xl">🔍</span>
+            <div>
+              <h2 class="font-display font-extrabold text-lg sm:text-xl text-[#2D2A32]">
+                Bộ Lọc Tìm Kiếm Giao Dịch
+              </h2>
+              <p class="text-xs font-bold text-[#2D2A32]/70">
+                Bấm vào thanh này để mở bộ lọc theo từ khóa, loại, ví hoặc danh mục
+              </p>
+            </div>
           </div>
 
-          <!-- Type -->
-          <div>
-            <label class="block text-[11px] font-extrabold uppercase text-[#2D2A32]/70 mb-1">
-              Loại giao dịch
-            </label>
-            <select
-              [ngModel]="draftType()"
-              (ngModelChange)="draftType.set($event)"
-              class="toy-input !py-1.5 !px-2.5 text-xs bg-[#FFFDF5]"
-            >
-              <option value="ALL">Tất cả loại</option>
-              <option value="INCOME">🌾 Khoản Thu (+)</option>
-              <option value="EXPENSE">🛒 Khoản Chi (-)</option>
-              <option value="TRANSFER">🔁 Chuyển ví (⇄)</option>
-            </select>
-          </div>
-
-          <!-- Wallet -->
-          <div>
-            <label class="block text-[11px] font-extrabold uppercase text-[#2D2A32]/70 mb-1">
-              Nguồn tiền / Ví
-            </label>
-            <select
-              [ngModel]="draftWalletId()"
-              (ngModelChange)="draftWalletId.set($event)"
-              class="toy-input !py-1.5 !px-2.5 text-xs bg-[#FFFDF5]"
-            >
-              <option value="ALL">👛 Tất cả ví</option>
-              @for (w of walletService.walletsWithBalance(); track w.id) {
-                <option [value]="w.id">
-                  {{ ownerMeta[w.owner_scope].emoji }} {{ w.name }}
-                </option>
-              }
-            </select>
-          </div>
-
-          <!-- Category -->
-          <div>
-            <label class="block text-[11px] font-extrabold uppercase text-[#2D2A32]/70 mb-1">
-              Danh mục
-            </label>
-            <select
-              [ngModel]="draftCategoryId()"
-              (ngModelChange)="draftCategoryId.set($event)"
-              class="toy-input !py-1.5 !px-2.5 text-xs bg-[#FFFDF5]"
-            >
-              <option value="ALL">🏷️ Tất cả danh mục</option>
-              @for (c of categoryService.categories(); track c.id) {
-                <option [value]="c.id">{{ c.icon }} {{ c.name }}</option>
-              }
-            </select>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-end gap-2 pt-2 border-t-2 border-dashed border-[#2D2A32]/15">
           <button
             type="button"
-            (click)="resetFilters()"
-            class="toy-btn px-3.5 py-1.5 bg-white text-xs font-extrabold"
+            class="toy-btn px-3.5 py-1.5 bg-white text-xs font-extrabold shrink-0"
           >
-            🔄 Đặt lại
-          </button>
-          <button
-            type="button"
-            (click)="applyFilters()"
-            class="toy-btn px-5 py-1.5 bg-[#FFB020] text-[#2D2A32] text-xs font-extrabold"
-          >
-            ✅ Áp dụng lọc
+            {{ filterOpen() ? 'Thu gọn ▲' : 'Mở bộ lọc ▼' }}
           </button>
         </div>
+
+        @if (filterOpen()) {
+          <div class="p-4 sm:p-5 space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              <!-- Search input -->
+              <div class="lg:col-span-2">
+                <label class="block text-[11px] font-extrabold uppercase text-[#2D2A32]/70 mb-1">
+                  Tìm kiếm nội dung
+                </label>
+                <input
+                  type="text"
+                  [ngModel]="draftSearch()"
+                  (ngModelChange)="draftSearch.set($event)"
+                  placeholder="🔎 Tìm tên món đồ, ghi chú..."
+                  class="toy-input !py-1.5 !px-3 text-xs bg-[#FFFDF5]"
+                />
+              </div>
+
+              <!-- Type -->
+              <div>
+                <label class="block text-[11px] font-extrabold uppercase text-[#2D2A32]/70 mb-1">
+                  Loại giao dịch
+                </label>
+                <select
+                  [ngModel]="draftType()"
+                  (ngModelChange)="draftType.set($event)"
+                  class="toy-input !py-1.5 !px-2.5 text-xs bg-[#FFFDF5]"
+                >
+                  <option value="ALL">Tất cả loại</option>
+                  <option value="INCOME">🌾 Khoản Thu (+)</option>
+                  <option value="EXPENSE">🛒 Khoản Chi (-)</option>
+                  <option value="TRANSFER">🔁 Chuyển ví (⇄)</option>
+                </select>
+              </div>
+
+              <!-- Wallet -->
+              <div>
+                <label class="block text-[11px] font-extrabold uppercase text-[#2D2A32]/70 mb-1">
+                  Nguồn tiền / Ví
+                </label>
+                <select
+                  [ngModel]="draftWalletId()"
+                  (ngModelChange)="draftWalletId.set($event)"
+                  class="toy-input !py-1.5 !px-2.5 text-xs bg-[#FFFDF5]"
+                >
+                  <option value="ALL">👛 Tất cả ví</option>
+                  @for (w of walletService.walletsWithBalance(); track w.id) {
+                    <option [value]="w.id">
+                      {{ ownerMeta[w.owner_scope].emoji }} {{ w.name }}
+                    </option>
+                  }
+                </select>
+              </div>
+
+              <!-- Category -->
+              <div>
+                <label class="block text-[11px] font-extrabold uppercase text-[#2D2A32]/70 mb-1">
+                  Danh mục
+                </label>
+                <select
+                  [ngModel]="draftCategoryId()"
+                  (ngModelChange)="draftCategoryId.set($event)"
+                  class="toy-input !py-1.5 !px-2.5 text-xs bg-[#FFFDF5]"
+                >
+                  <option value="ALL">🏷️ Tất cả danh mục</option>
+                  @for (c of categoryService.categories(); track c.id) {
+                    <option [value]="c.id">{{ c.icon }} {{ c.name }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2 border-t-2 border-dashed border-[#2D2A32]/15">
+              <button
+                type="button"
+                (click)="resetFilters()"
+                class="toy-btn px-3.5 py-1.5 bg-white text-xs font-extrabold"
+              >
+                🔄 Đặt lại
+              </button>
+              <button
+                type="button"
+                (click)="applyFilters()"
+                class="toy-btn px-5 py-1.5 bg-[#FFB020] text-[#2D2A32] text-xs font-extrabold"
+              >
+                ✅ Áp dụng lọc
+              </button>
+            </div>
+          </div>
+        }
       </div>
 
       <!-- ======================================================================= -->
@@ -503,8 +533,9 @@ export class TransactionsComponent {
 
   readonly ownerMeta = OWNER_SCOPE_META;
 
-  // Collapsible history state
-  readonly historyOpen = signal<boolean>(true);
+  // Collapsible filter & history state (both default CLOSED as requested)
+  readonly filterOpen = signal<boolean>(false);
+  readonly historyOpen = signal<boolean>(false);
 
   // Draft vs Applied filters
   readonly draftSearch = signal<string>('');

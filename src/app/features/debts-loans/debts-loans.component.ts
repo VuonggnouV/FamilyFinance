@@ -329,7 +329,7 @@ import {
                   name="principalDisplay"
                   [ngModel]="principalDisplay()"
                   (ngModelChange)="principalDisplay.set(formatVnd($event))"
-                  placeholder="VD: Nhập 5000 rồi bấm .000 -> 5.000.000"
+                  placeholder="0"
                   required
                   class="toy-input money-num text-2xl font-extrabold bg-white"
                 />
@@ -531,7 +531,7 @@ import {
                   name="repayAmountDisplay"
                   [ngModel]="repayAmountDisplay()"
                   (ngModelChange)="repayAmountDisplay.set(formatVnd($event))"
-                  placeholder="Nhập số tiền..."
+                  placeholder="0"
                   required
                   class="toy-input money-num text-2xl font-extrabold text-[#15803D] bg-white"
                 />

@@ -124,7 +124,7 @@ import {
                   name="amountDisplay"
                   [ngModel]="amountDisplay()"
                   (ngModelChange)="onAmountInput($event)"
-                  placeholder="VD: Nhập 23 rồi bấm .000 -> 23.000"
+                  placeholder="0"
                   required
                   class="toy-input money-num text-2xl font-extrabold pr-14 bg-white"
                   [ngClass]="{
