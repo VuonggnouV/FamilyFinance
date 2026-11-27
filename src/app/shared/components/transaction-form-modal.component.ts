@@ -1,5 +1,6 @@
 import {
   Component,
+  ChangeDetectorRef,
   EventEmitter,
   Input,
   OnChanges,
@@ -34,7 +35,7 @@ import {
   standalone: true,
   imports: [CommonModule, FormsModule, VndPipe],
   template: `
-    @if (isOpen) {
+    @if (isOpen && !forceClosed()) {
       <div
         class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#2D2A32]/60 backdrop-blur-xs overflow-y-auto"
         (click)="onClose()"
@@ -504,6 +505,7 @@ export class TransactionFormModalComponent implements OnChanges {
   private readonly transactionService = inject(TransactionService);
   private readonly toast = inject(ToastService);
   private readonly confetti = inject(ConfettiService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   @Input() isOpen = false;
   @Input() defaultType: TxType = 'EXPENSE';
@@ -554,6 +556,7 @@ export class TransactionFormModalComponent implements OnChanges {
   readonly isRefundable = signal<boolean>(false);
   readonly submitting = signal<boolean>(false);
   readonly savedDone = signal<boolean>(false);
+  readonly forceClosed = signal<boolean>(false);
 
   // Quick Inline Category Creation Modal State
   readonly quickCatModalOpen = signal<boolean>(false);
@@ -579,6 +582,7 @@ export class TransactionFormModalComponent implements OnChanges {
   private initForm(): void {
     this.submitting.set(false);
     this.savedDone.set(false);
+    this.forceClosed.set(false);
     this.quickCatModalOpen.set(false);
 
     const tx = this.editTransaction;
@@ -718,6 +722,7 @@ export class TransactionFormModalComponent implements OnChanges {
         this.isRefundable.set(Boolean(created.is_refundable));
       }
       this.quickCatModalOpen.set(false);
+      this.cdr.detectChanges();
       this.toast.show(
         'success',
         'Đã tạo & chọn danh mục mới! 🏷️✨',
@@ -731,11 +736,15 @@ export class TransactionFormModalComponent implements OnChanges {
       );
     } finally {
       this.savingQuickCat.set(false);
+      this.cdr.detectChanges();
     }
   }
 
   async onSubmit(): Promise<void> {
     if (this.submitting() || this.savedDone()) return;
+    if (typeof document !== 'undefined') {
+      (document.activeElement as HTMLElement)?.blur?.();
+    }
 
     const amount = parseVndInput(this.amountDisplay());
     if (amount <= 0) {
@@ -776,56 +785,62 @@ export class TransactionFormModalComponent implements OnChanges {
 
     this.submitting.set(true);
     try {
+      const currentType = this.type();
+      const isEditing = Boolean(this.editTransaction);
+
       if (this.editTransaction) {
         await this.transactionService.updateTransaction(this.editTransaction.id, {
-          type: this.type(),
+          type: currentType,
           amount,
           wallet_id: this.walletId(),
-          to_wallet_id: this.type() === 'TRANSFER' ? this.toWalletId() : null,
-          category_id: this.type() === 'TRANSFER' ? null : this.categoryId(),
+          to_wallet_id: currentType === 'TRANSFER' ? this.toWalletId() : null,
+          category_id: currentType === 'TRANSFER' ? null : this.categoryId(),
           actor: derivedActor,
           title: finalTitle,
           note: this.note() || null,
           transaction_date: this.transactionDate(),
-          is_refundable: this.type() === 'EXPENSE' ? this.isRefundable() : false,
+          is_refundable: currentType === 'EXPENSE' ? this.isRefundable() : false,
         });
-        this.toast.show('success', 'Đã cập nhật! ✨', 'Sổ chi tiêu đã được sửa gọn gàng.');
       } else {
         await this.transactionService.createTransaction({
-          type: this.type(),
+          type: currentType,
           amount,
           wallet_id: this.walletId(),
-          to_wallet_id: this.type() === 'TRANSFER' ? this.toWalletId() : null,
-          category_id: this.type() === 'TRANSFER' ? null : this.categoryId(),
+          to_wallet_id: currentType === 'TRANSFER' ? this.toWalletId() : null,
+          category_id: currentType === 'TRANSFER' ? null : this.categoryId(),
           actor: derivedActor,
           title: finalTitle,
           note: this.note() || null,
           transaction_date: this.transactionDate(),
-          is_refundable: this.type() === 'EXPENSE' ? this.isRefundable() : false,
+          is_refundable: currentType === 'EXPENSE' ? this.isRefundable() : false,
         });
-
-        if (this.type() === 'INCOME') {
-          this.confetti.celebrate();
-          this.toast.show(
-            'success',
-            'Ting ting lúa về! 🌾🎉',
-            `Đã cộng thêm ${formatVndInput(amount)} ₫ vào két sắt gia đình!`
-          );
-        } else if (this.type() === 'EXPENSE') {
-          this.toast.show(
-            'info',
-            'Đã ghi sổ chốt đơn! 🛒',
-            `Đã ghi khoản chi "${finalTitle}" (${formatVndInput(amount)} ₫).`
-          );
-        } else {
-          this.toast.show('success', 'Chuyển ví xong! 🔁', 'Số dư các ví đã được cập nhật.');
-        }
       }
 
-      // Immediately switch to Done state and close modal to prevent duplicate clicks
+      // Close modal FIRST immediately after DB success so it always exits on mobile
       this.savedDone.set(true);
+      this.forceClosed.set(true);
       this.saved.emit();
       this.onClose();
+      this.cdr.detectChanges();
+
+      if (isEditing) {
+        this.toast.show('success', 'Đã cập nhật! ✨', 'Sổ chi tiêu đã được sửa gọn gàng.');
+      } else if (currentType === 'INCOME') {
+        this.confetti.celebrate();
+        this.toast.show(
+          'success',
+          'Ting ting lúa về! 🌾🎉',
+          `Đã cộng thêm ${formatVndInput(amount)} ₫ vào két sắt gia đình!`
+        );
+      } else if (currentType === 'EXPENSE') {
+        this.toast.show(
+          'info',
+          'Đã ghi sổ chốt đơn! 🛒',
+          `Đã ghi khoản chi "${finalTitle}" (${formatVndInput(amount)} ₫).`
+        );
+      } else {
+        this.toast.show('success', 'Chuyển ví xong! 🔁', 'Số dư các ví đã được cập nhật.');
+      }
     } catch (err: any) {
       this.toast.show(
         'error',

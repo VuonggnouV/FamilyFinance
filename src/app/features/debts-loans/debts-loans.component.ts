@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, ChangeDetectorRef, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -707,6 +707,7 @@ export class DebtsLoansComponent {
   readonly walletService = inject(WalletService);
   private readonly toast = inject(ToastService);
   private readonly confetti = inject(ConfettiService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   readonly ownerMeta = OWNER_SCOPE_META;
   readonly activeTab = signal<DebtLoanType>('LEND');
@@ -851,44 +852,51 @@ export class DebtsLoansComponent {
     this.submitting.set(true);
     try {
       const edit = this.editingItem();
+      const targetName = this.counterparty();
+      const currentFormType = this.formType();
       if (edit) {
         await this.debtLoanService.updateDebtLoan(edit.id, {
-          counterparty: this.counterparty(),
+          counterparty: targetName,
           principal_amount: principal,
           wallet_id: this.walletId(),
           actor: derivedActor,
           affects_balance:
-            this.formType() === 'DEBT' ? this.affectsBalance() : true,
+            currentFormType === 'DEBT' ? this.affectsBalance() : true,
           transaction_date: this.transactionDate(),
           due_date: this.dueDate() || null,
           note: this.note() || null,
         });
-        this.toast.show('success', 'Đã cập nhật! ✨', 'Thông tin đã được lưu.');
       } else {
         await this.debtLoanService.createDebtLoan({
-          type: this.formType(),
-          counterparty: this.counterparty(),
+          type: currentFormType,
+          counterparty: targetName,
           principal_amount: principal,
           wallet_id: this.walletId(),
           actor: derivedActor,
           affects_balance:
-            this.formType() === 'DEBT' ? this.affectsBalance() : true,
+            currentFormType === 'DEBT' ? this.affectsBalance() : true,
           transaction_date: this.transactionDate(),
           due_date: this.dueDate() || null,
           note: this.note() || null,
         });
-        this.toast.show(
-          'success',
-          'Đã ghi sổ thành công! 📝',
-          `Đã thêm khoản ${this.formType() === 'LEND' ? 'Cho mượn' : 'Nợ'} với ${this.counterparty()}.`
-        );
       }
+      // Close modal FIRST and flush DOM synchronously for mobile
       this.savedDone.set(true);
       this.formModalOpen.set(false);
+      this.cdr.detectChanges();
+
+      this.toast.show(
+        'success',
+        edit ? 'Đã cập nhật! ✨' : 'Đã ghi sổ thành công! 📝',
+        edit
+          ? 'Thông tin đã được lưu.'
+          : `Đã thêm khoản ${currentFormType === 'LEND' ? 'Cho mượn' : 'Nợ'} với ${targetName}.`
+      );
     } catch (err: any) {
       this.toast.show('error', 'Không thể lưu! 🚨', err?.message || 'Có lỗi xảy ra.');
     } finally {
       this.submitting.set(false);
+      this.cdr.detectChanges();
     }
   }
 
@@ -951,6 +959,7 @@ export class DebtsLoansComponent {
 
       this.repayDone.set(true);
       this.repaymentModalOpen.set(false);
+      this.cdr.detectChanges();
 
       if (settled) {
         this.confetti.celebrate();

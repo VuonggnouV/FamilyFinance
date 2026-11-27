@@ -1,5 +1,6 @@
 import {
   Component,
+  ChangeDetectorRef,
   ElementRef,
   ViewChild,
   OnDestroy,
@@ -941,6 +942,7 @@ export class DashboardComponent implements OnDestroy {
   readonly debtLoanService = inject(DebtLoanService);
   readonly dataSync = inject(DataSyncService);
   private readonly toast = inject(ToastService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   @ViewChild('cashflowCanvas') cashflowCanvas?: ElementRef<HTMLCanvasElement>;
   @ViewChild('donutCanvas') donutCanvas?: ElementRef<HTMLCanvasElement>;
@@ -1093,28 +1095,34 @@ export class DashboardComponent implements OnDestroy {
     try {
       const initial = parseVndInput(this.walletInitialDisplay());
       const edit = this.editingWallet();
+      const savedName = this.walletName();
       if (edit) {
         await this.walletService.updateWallet(edit.id, {
-          name: this.walletName(),
+          name: savedName,
           owner_scope: this.walletOwner(),
           wallet_type: this.walletType(),
           initial_balance: initial,
         });
-        this.toast.show('success', 'Đã cập nhật ví! ✨', 'Thông tin ví đã được lưu.');
       } else {
         await this.walletService.createWallet({
-          name: this.walletName(),
+          name: savedName,
           owner_scope: this.walletOwner(),
           wallet_type: this.walletType(),
           initial_balance: initial,
         });
-        this.toast.show('success', 'Đã thêm ví mới! 💳', `Ví "${this.walletName()}" đã sẵn sàng.`);
       }
       this.walletFormModalOpen.set(false);
+      this.cdr.detectChanges();
+      this.toast.show(
+        'success',
+        edit ? 'Đã cập nhật ví! ✨' : 'Đã thêm ví mới! 💳',
+        edit ? 'Thông tin ví đã được lưu.' : `Ví "${savedName}" đã sẵn sàng.`
+      );
     } catch (err: any) {
       this.toast.show('error', 'Không thể lưu ví! 🚨', err?.message || 'Vui lòng thử lại.');
     } finally {
       this.submittingWallet.set(false);
+      this.cdr.detectChanges();
     }
   }
 

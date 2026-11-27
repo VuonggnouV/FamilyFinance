@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, ChangeDetectorRef, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -802,6 +802,7 @@ export class SettingsComponent {
   readonly authService = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   readonly ownerMeta = OWNER_SCOPE_META;
   readonly walletTypeMeta = WALLET_TYPE_META;
@@ -919,6 +920,7 @@ export class SettingsComponent {
   }
 
   async onSaveWallet(): Promise<void> {
+    if (this.submitting()) return;
     if (!this.walletName().trim()) {
       this.toast.show('warning', 'Thiếu tên ví! 💳', 'Hãy nhập tên ví hoặc ngân hàng.');
       return;
@@ -928,28 +930,35 @@ export class SettingsComponent {
     try {
       const initial = parseVndInput(this.walletInitialDisplay());
       const edit = this.editingWallet();
+      const savedName = this.walletName();
       if (edit) {
         await this.walletService.updateWallet(edit.id, {
-          name: this.walletName(),
+          name: savedName,
           owner_scope: this.walletOwner(),
           wallet_type: this.walletType(),
           initial_balance: initial,
         });
-        this.toast.show('success', 'Đã cập nhật ví! ✨', 'Thông tin ví đã được lưu.');
       } else {
         await this.walletService.createWallet({
-          name: this.walletName(),
+          name: savedName,
           owner_scope: this.walletOwner(),
           wallet_type: this.walletType(),
           initial_balance: initial,
         });
-        this.toast.show('success', 'Đã thêm ví mới! 💳', `Ví "${this.walletName()}" đã sẵn sàng.`);
       }
+      // Close modal FIRST before showing toast
       this.walletModalOpen.set(false);
+      this.cdr.detectChanges();
+      this.toast.show(
+        'success',
+        edit ? 'Đã cập nhật ví! ✨' : 'Đã thêm ví mới! 💳',
+        edit ? 'Thông tin ví đã được lưu.' : `Ví "${savedName}" đã sẵn sàng.`
+      );
     } catch (err: any) {
       this.toast.show('error', 'Không thể lưu ví! 🚨', err?.message || 'Vui lòng thử lại.');
     } finally {
       this.submitting.set(false);
+      this.cdr.detectChanges();
     }
   }
 
@@ -1018,6 +1027,7 @@ export class SettingsComponent {
   }
 
   async onSaveCategory(): Promise<void> {
+    if (this.submitting()) return;
     if (!this.catName().trim()) {
       this.toast.show('warning', 'Thiếu tên danh mục! 🏷️', 'Hãy nhập tên danh mục.');
       return;
@@ -1026,36 +1036,39 @@ export class SettingsComponent {
     this.submitting.set(true);
     try {
       const edit = this.editingCategory();
+      const savedName = this.catName();
       if (edit) {
         await this.categoryService.updateCategory(edit.id, {
-          name: this.catName(),
+          name: savedName,
           type: this.catType(),
           icon: this.catIcon(),
           color: this.catColor(),
           is_refundable:
             this.catType() === 'EXPENSE' ? this.catRefundable() : false,
         });
-        this.toast.show('success', 'Đã cập nhật danh mục! ✨', 'Danh mục đã được lưu.');
       } else {
         await this.categoryService.createCategory({
-          name: this.catName(),
+          name: savedName,
           type: this.catType(),
           icon: this.catIcon(),
           color: this.catColor(),
           is_refundable:
             this.catType() === 'EXPENSE' ? this.catRefundable() : false,
         });
-        this.toast.show(
-          'success',
-          'Đã thêm danh mục! 🏷️',
-          `Danh mục "${this.catName()}" đã sẵn sàng.`
-        );
       }
+      // Close modal FIRST before showing toast
       this.categoryModalOpen.set(false);
+      this.cdr.detectChanges();
+      this.toast.show(
+        'success',
+        edit ? 'Đã cập nhật danh mục! ✨' : 'Đã thêm danh mục! 🏷️',
+        edit ? 'Danh mục đã được lưu.' : `Danh mục "${savedName}" đã sẵn sàng.`
+      );
     } catch (err: any) {
       this.toast.show('error', 'Không thể lưu danh mục! 🚨', err?.message || 'Vui lòng thử lại.');
     } finally {
       this.submitting.set(false);
+      this.cdr.detectChanges();
     }
   }
 

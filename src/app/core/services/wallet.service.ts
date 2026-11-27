@@ -119,8 +119,10 @@ export class WalletService {
       .single();
 
     if (error) throw error;
-    await this.loadWallets();
-    return data as Wallet;
+    const created = data as Wallet;
+    this.wallets.update((list) => [...list, created]);
+    void this.loadWallets();
+    return created;
   }
 
   async updateWallet(
@@ -149,7 +151,10 @@ export class WalletService {
       .eq('id', id);
 
     if (error) throw error;
-    await this.loadWallets();
+    this.wallets.update((list) =>
+      list.map((w) => (w.id === id ? ({ ...w, ...updateData } as Wallet) : w))
+    );
+    void this.loadWallets();
   }
 
   async deleteWallet(id: string): Promise<void> {

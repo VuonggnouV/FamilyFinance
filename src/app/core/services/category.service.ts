@@ -77,8 +77,10 @@ export class CategoryService {
       .single();
 
     if (error) throw error;
-    await this.loadCategories();
-    return data as Category;
+    const created = data as Category;
+    this.categories.update((list) => [...list, created]);
+    void this.loadCategories();
+    return created;
   }
 
   async updateCategory(
@@ -103,7 +105,10 @@ export class CategoryService {
       .eq('id', id);
 
     if (error) throw error;
-    await this.loadCategories();
+    this.categories.update((list) =>
+      list.map((c) => (c.id === id ? ({ ...c, ...updateData } as Category) : c))
+    );
+    void this.loadCategories();
   }
 
   async deleteCategory(id: string): Promise<void> {

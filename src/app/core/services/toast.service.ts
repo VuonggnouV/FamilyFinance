@@ -20,13 +20,20 @@ export class ToastService {
   readonly toasts = signal<ToastItem[]>([]);
   private timers = new Map<string, ReturnType<typeof setInterval>>();
 
+  private idCounter = 0;
+
+  private generateId(): string {
+    this.idCounter++;
+    return `toast-${Date.now()}-${this.idCounter}-${Math.random().toString(36).slice(2, 7)}`;
+  }
+
   show(
     type: 'success' | 'error' | 'warning' | 'info',
     title: string,
     message: string,
     durationMs = 4000
   ): void {
-    const id = crypto.randomUUID();
+    const id = this.generateId();
     const item: ToastItem = {
       id,
       type,
@@ -50,7 +57,7 @@ export class ToastService {
     durationMs = 10000,
     undoLabel = 'Ấy khoan! Quay xe (Undo)'
   ): void {
-    const id = crypto.randomUUID();
+    const id = this.generateId();
     const item: ToastItem = {
       id,
       type: 'undo',

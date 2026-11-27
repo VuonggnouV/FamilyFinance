@@ -1,5 +1,6 @@
 import {
   Component,
+  ChangeDetectorRef,
   EventEmitter,
   Input,
   OnChanges,
@@ -30,7 +31,7 @@ import {
   standalone: true,
   imports: [CommonModule, FormsModule, VndPipe],
   template: `
-    @if (isOpen && transaction) {
+    @if (isOpen && transaction && !forceClosed()) {
       <div
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2D2A32]/60 backdrop-blur-xs"
         (click)="onClose()"
@@ -189,6 +190,7 @@ export class RefundModalComponent implements OnChanges {
   private readonly transactionService = inject(TransactionService);
   private readonly toast = inject(ToastService);
   private readonly confetti = inject(ConfettiService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   readonly String = String;
 
@@ -203,11 +205,13 @@ export class RefundModalComponent implements OnChanges {
   readonly validationError = signal<string>('');
   readonly submitting = signal<boolean>(false);
   readonly refundDone = signal<boolean>(false);
+  readonly forceClosed = signal<boolean>(false);
 
   ngOnChanges(changes: SimpleChanges): void {
     if ((changes['isOpen'] || changes['transaction']) && this.isOpen && this.transaction) {
       this.submitting.set(false);
       this.refundDone.set(false);
+      this.forceClosed.set(false);
       this.refundAmountDisplay.set(formatVndInput(this.transaction.amount));
       this.refundWalletId.set(this.transaction.wallet_id);
       this.validationError.set('');
@@ -268,9 +272,11 @@ export class RefundModalComponent implements OnChanges {
 
       const actualRefund = p_refund_amount ?? tx.amount;
       this.refundDone.set(true);
-      this.confetti.celebrate();
+      this.forceClosed.set(true);
       this.refunded.emit();
       this.onClose();
+      this.cdr.detectChanges();
+      this.confetti.celebrate();
 
       this.toast.showUndo(
         'Đã hoàn tiền trả hàng! 🛒↩️',

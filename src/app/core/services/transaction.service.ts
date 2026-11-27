@@ -157,9 +157,11 @@ export class TransactionService {
 
     if (error) throw error;
 
+    const createdTx = this.normalizeTx(data);
+    this.transactions.update((list) => [createdTx, ...list]);
     // Refresh in background so UI modal closes immediately without duplicate taps
     void Promise.all([this.loadTransactions(), this.walletService.loadWallets()]);
-    return this.normalizeTx(data);
+    return createdTx;
   }
 
   async updateTransaction(
@@ -197,6 +199,9 @@ export class TransactionService {
       .eq('id', id);
 
     if (error) throw error;
+    this.transactions.update((list) =>
+      list.map((t) => (t.id === id ? ({ ...t, ...updateRow } as Transaction) : t))
+    );
     void Promise.all([this.loadTransactions(), this.walletService.loadWallets()]);
   }
 
