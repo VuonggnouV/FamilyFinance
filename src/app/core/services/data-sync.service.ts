@@ -21,6 +21,12 @@ export class DataSyncService {
   /** Global quick-add transaction modal trigger (used by Mobile '+' FAB & top buttons) */
   readonly quickTransactionModalOpen = signal<boolean>(false);
   readonly quickTransactionDefaultType = signal<'INCOME' | 'EXPENSE' | 'TRANSFER'>('EXPENSE');
+  /** Pre-filled title & amount captured from the Live Voice Overlay after releasing '+' */
+  readonly quickTransactionVoicePrefill = signal<{
+    title: string;
+    amount: number | null;
+    rawText: string;
+  } | null>(null);
 
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -46,13 +52,18 @@ export class DataSyncService {
     this.initialLoaded.set(true);
   }
 
-  openQuickAdd(type: 'INCOME' | 'EXPENSE' | 'TRANSFER' = 'EXPENSE'): void {
+  openQuickAdd(
+    type: 'INCOME' | 'EXPENSE' | 'TRANSFER' = 'EXPENSE',
+    voicePrefill: { title: string; amount: number | null; rawText: string } | null = null
+  ): void {
     this.quickTransactionDefaultType.set(type);
+    this.quickTransactionVoicePrefill.set(voicePrefill);
     this.quickTransactionModalOpen.set(true);
   }
 
   closeQuickAdd(): void {
     this.quickTransactionModalOpen.set(false);
+    this.quickTransactionVoicePrefill.set(null);
   }
 
   private async handleRealtimeChange(

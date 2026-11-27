@@ -47,7 +47,7 @@ import {
   VndPipe,
   formatVndInput,
   parseVndInput,
-  appendThreeZeros,
+  getMoneySuggestions,
 } from '../../shared/pipes/vnd.pipe';
 
 Chart.register(
@@ -1178,31 +1178,48 @@ Chart.register(
                 <label class="block text-xs font-extrabold uppercase text-[#2D2A32]/75 mb-1">
                   Số dư đầu kỳ (VND)
                 </label>
-                <input
-                  type="text"
-                  inputmode="numeric"
-                  name="walletInitialDisplay"
-                  [ngModel]="walletInitialDisplay()"
-                  (ngModelChange)="walletInitialDisplay.set(formatVnd($event))"
-                  placeholder="0"
-                  class="toy-input money-num text-xl font-extrabold bg-white"
-                />
-                <div class="flex flex-wrap items-center gap-1.5 mt-2">
-                  <button
-                    type="button"
-                    (click)="onAppendZerosWallet()"
-                    class="px-3 py-1 text-xs font-extrabold rounded-xl border-2 border-[#2D2A32] bg-[#FFB020] hover:bg-[#FFA000] text-[#2D2A32] shadow-[0_2px_0_#2D2A32] cursor-pointer money-num"
-                  >
-                    .000 (×1000)
-                  </button>
-                  <button
-                    type="button"
-                    (click)="walletInitialDisplay.set('0')"
-                    class="px-2.5 py-1 text-xs font-extrabold rounded-xl border border-[#2D2A32] bg-white cursor-pointer"
-                  >
-                    Đặt về 0
-                  </button>
+                <div class="relative">
+                  <input
+                    type="text"
+                    inputmode="numeric"
+                    name="walletInitialDisplay"
+                    [ngModel]="walletInitialDisplay()"
+                    (ngModelChange)="onWalletInitialInput($event)"
+                    placeholder="0"
+                    class="toy-input money-num text-xl font-extrabold bg-white pr-24"
+                  />
+                  <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                    @if (walletInitialDisplay() && walletInitialDisplay() !== '0') {
+                      <button
+                        type="button"
+                        (mousedown)="$event.preventDefault()"
+                        (click)="clearWalletInitial()"
+                        class="px-2.5 py-1 text-xs font-extrabold rounded-xl border-2 border-[#2D2A32] bg-[#FFE4E6] hover:bg-[#FF5C6C] text-[#BE123C] hover:text-white shadow-[0_2px_0_#2D2A32] active:translate-y-0.5 cursor-pointer transition-colors"
+                        title="Xóa số tiền vừa nhập"
+                      >
+                        ✕ Xóa
+                      </button>
+                    } @else {
+                      <span class="font-display font-extrabold text-sm text-[#2D2A32]/60">
+                        VNĐ
+                      </span>
+                    }
+                  </div>
                 </div>
+                @if (walletInitialSuggestions().length > 0) {
+                  <div class="grid grid-cols-3 gap-2 mt-2">
+                    @for (sug of walletInitialSuggestions(); track sug.raw) {
+                      <button
+                        type="button"
+                        (mousedown)="$event.preventDefault()"
+                        (click)="applyWalletInitialSuggestion(sug.display)"
+                        class="py-1.5 px-2 text-xs font-extrabold rounded-xl border-2 border-[#2D2A32] bg-[#FEF3C7] hover:bg-[#FFB020] text-[#2D2A32] shadow-[0_2px_0_#2D2A32] active:translate-y-0.5 cursor-pointer money-num text-center truncate transition-colors"
+                      >
+                        {{ sug.display }} ₫
+                      </button>
+                    }
+                  </div>
+                }
               </div>
 
               <div class="flex items-center justify-end gap-2 pt-2">
@@ -1279,8 +1296,14 @@ export class DashboardComponent implements OnDestroy {
   readonly walletName = signal<string>('');
   readonly walletOwner = signal<OwnerScope>('SHARED');
   readonly walletType = signal<WalletType>('BANK');
-  readonly walletInitialDisplay = signal<string>('0');
+  readonly walletInitialDisplay = signal<string>('');
+  readonly showWalletInitialSuggestions = signal<boolean>(true);
   readonly submittingWallet = signal<boolean>(false);
+
+  readonly walletInitialSuggestions = computed(() => {
+    if (!this.showWalletInitialSuggestions()) return [];
+    return getMoneySuggestions(this.walletInitialDisplay());
+  });
 
   // Draft Filter Controls
   readonly draftRangePreset = signal<'THIS_MONTH' | 'ALL_TIME' | 'CUSTOM'>('ALL_TIME');
@@ -1402,11 +1425,19 @@ export class DashboardComponent implements OnDestroy {
     return formatVndInput(val);
   }
 
-  onAppendZerosWallet(): void {
-    const next = appendThreeZeros(this.walletInitialDisplay());
-    if (next) {
-      this.walletInitialDisplay.set(next);
-    }
+  onWalletInitialInput(val: string): void {
+    this.showWalletInitialSuggestions.set(true);
+    this.walletInitialDisplay.set(formatVndInput(val));
+  }
+
+  applyWalletInitialSuggestion(display: string): void {
+    this.walletInitialDisplay.set(display);
+    this.showWalletInitialSuggestions.set(false);
+  }
+
+  clearWalletInitial(): void {
+    this.walletInitialDisplay.set('');
+    this.showWalletInitialSuggestions.set(true);
   }
 
   openWalletFormModal(w?: WalletWithBalance): void {

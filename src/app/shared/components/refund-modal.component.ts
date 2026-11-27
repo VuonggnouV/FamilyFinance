@@ -8,6 +8,7 @@ import {
   SimpleChanges,
   inject,
   signal,
+  computed,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -23,7 +24,7 @@ import {
   VndPipe,
   formatVndInput,
   parseVndInput,
-  appendThreeZeros,
+  getMoneySuggestions,
 } from '../pipes/vnd.pipe';
 
 @Component({
@@ -82,7 +83,7 @@ import {
             </div>
           </div>
 
-          <!-- COMPONENT 1: Khung nhập số tiền hoàn + Nút .000 + Dropdown chọn ví nhận hoàn tiền -->
+          <!-- COMPONENT 1: Khung nhập số tiền hoàn + 3 thanh gợi ý + Nút xóa bên phải + Dropdown chọn ví -->
           <div class="space-y-3">
             <div>
               <label class="block text-xs font-extrabold uppercase tracking-wider text-[#2D2A32]/75 mb-1">
@@ -95,31 +96,41 @@ import {
                   [ngModel]="refundAmountDisplay()"
                   (ngModelChange)="onAmountChange($event)"
                   placeholder="0"
-                  class="toy-input money-num text-2xl font-extrabold text-[#15803D] bg-white pr-14"
+                  class="toy-input money-num text-2xl font-extrabold text-[#15803D] bg-white pr-24"
                 />
-                <span
-                  class="absolute right-4 top-1/2 -translate-y-1/2 font-display font-extrabold text-sm text-[#2D2A32]/60"
-                >
-                  VNĐ
-                </span>
+                <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                  @if (refundAmountDisplay()) {
+                    <button
+                      type="button"
+                      (mousedown)="$event.preventDefault()"
+                      (click)="clearRefundAmount()"
+                      class="px-2.5 py-1 text-xs font-extrabold rounded-xl border-2 border-[#2D2A32] bg-[#FFE4E6] hover:bg-[#FF5C6C] text-[#BE123C] hover:text-white shadow-[0_2px_0_#2D2A32] active:translate-y-0.5 cursor-pointer transition-colors"
+                      title="Xóa số tiền vừa nhập"
+                    >
+                      ✕ Xóa
+                    </button>
+                  } @else {
+                    <span class="font-display font-extrabold text-sm text-[#2D2A32]/60">
+                      VNĐ
+                    </span>
+                  }
+                </div>
               </div>
 
-              <div class="flex flex-wrap items-center gap-1.5 mt-2">
-                <button
-                  type="button"
-                  (click)="onAppendThreeZeros()"
-                  class="px-3 py-1 text-xs font-extrabold rounded-xl border-2 border-[#2D2A32] bg-[#FFB020] hover:bg-[#FFA000] text-[#2D2A32] shadow-[0_2px_0_#2D2A32] cursor-pointer money-num"
-                >
-                  .000 (×1000)
-                </button>
-                <button
-                  type="button"
-                  (click)="onAmountChange(String(transaction.amount))"
-                  class="px-2.5 py-1 text-xs font-extrabold rounded-xl border border-[#2D2A32] bg-white hover:bg-[#DCFCE7] cursor-pointer money-num"
-                >
-                  Đặt bằng tiền gốc ({{ transaction.amount | vnd }})
-                </button>
-              </div>
+              @if (refundMoneySuggestions().length > 0) {
+                <div class="grid grid-cols-3 gap-2 mt-2">
+                  @for (sug of refundMoneySuggestions(); track sug.raw) {
+                    <button
+                      type="button"
+                      (mousedown)="$event.preventDefault()"
+                      (click)="applyRefundSuggestion(sug.display)"
+                      class="py-1.5 px-2 text-xs font-extrabold rounded-xl border-2 border-[#2D2A32] bg-[#FEF3C7] hover:bg-[#FFB020] text-[#2D2A32] shadow-[0_2px_0_#2D2A32] active:translate-y-0.5 cursor-pointer money-num text-center truncate transition-colors"
+                    >
+                      {{ sug.display }} ₫
+                    </button>
+                  }
+                </div>
+              }
 
               @if (validationError()) {
                 <p class="text-xs font-extrabold text-[#BE123C] mt-1">
@@ -201,31 +212,32 @@ export class RefundModalComponent implements OnChanges {
 
   readonly ownerMeta = OWNER_SCOPE_META;
   readonly refundAmountDisplay = signal<string>('');
+  readonly showRefundSuggestions = signal<boolean>(false);
   readonly refundWalletId = signal<string>('');
   readonly validationError = signal<string>('');
   readonly submitting = signal<boolean>(false);
   readonly refundDone = signal<boolean>(false);
   readonly forceClosed = signal<boolean>(false);
 
+  readonly refundMoneySuggestions = computed(() => {
+    if (!this.showRefundSuggestions()) return [];
+    return getMoneySuggestions(this.refundAmountDisplay());
+  });
+
   ngOnChanges(changes: SimpleChanges): void {
     if ((changes['isOpen'] || changes['transaction']) && this.isOpen && this.transaction) {
       this.submitting.set(false);
       this.refundDone.set(false);
       this.forceClosed.set(false);
+      this.showRefundSuggestions.set(false);
       this.refundAmountDisplay.set(formatVndInput(this.transaction.amount));
       this.refundWalletId.set(this.transaction.wallet_id);
       this.validationError.set('');
     }
   }
 
-  onAppendThreeZeros(): void {
-    const next = appendThreeZeros(this.refundAmountDisplay());
-    if (next) {
-      this.onAmountChange(next);
-    }
-  }
-
-  onAmountChange(val: string): void {
+  onAmountChange(val: string, fromSuggestion = false): void {
+    this.showRefundSuggestions.set(!fromSuggestion);
     const formatted = formatVndInput(val);
     this.refundAmountDisplay.set(formatted);
     const num = parseVndInput(formatted);
@@ -238,6 +250,16 @@ export class RefundModalComponent implements OnChanges {
     } else {
       this.validationError.set('');
     }
+  }
+
+  applyRefundSuggestion(display: string): void {
+    this.onAmountChange(display, true);
+  }
+
+  clearRefundAmount(): void {
+    this.refundAmountDisplay.set('');
+    this.showRefundSuggestions.set(true);
+    this.validationError.set('Số tiền hoàn phải lớn hơn 0 VNĐ');
   }
 
   async confirmPartialOrCustomRefund(): Promise<void> {

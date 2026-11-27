@@ -57,3 +57,32 @@ export function appendThreeZeros(formatted: string | number | null | undefined):
   const next = Math.min(999_999_999_999, current * 1000);
   return formatVndInput(next);
 }
+
+/**
+ * Generate 3 smart live money suggestions while the user is typing a base number.
+ * Example:
+ *  - Input "3"  -> ["3.000", "30.000", "300.000"]
+ *  - Input "32" -> ["32.000", "320.000", "3.200.000"]
+ */
+export function getMoneySuggestions(
+  formatted: string | number | null | undefined,
+  maxAmount = 999_999_999_999
+): { raw: number; display: string }[] {
+  const current = parseVndInput(formatted);
+  if (current <= 0 || current >= 1_000_000) return [];
+
+  const multipliers = [1_000, 10_000, 100_000];
+  const results: { raw: number; display: string }[] = [];
+
+  for (const mult of multipliers) {
+    const val = current * mult;
+    if (val > 0 && val <= maxAmount) {
+      results.push({
+        raw: val,
+        display: formatVndInput(val),
+      });
+    }
+  }
+  return results;
+}
+

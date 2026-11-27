@@ -1,4 +1,12 @@
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  ChangeDetectorRef,
+  OnDestroy,
+  OnInit,
+  inject,
+  signal,
+  computed,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FamilyService } from './core/services/family.service';
@@ -6,6 +14,7 @@ import { AuthService } from './core/services/auth.service';
 import { DataSyncService } from './core/services/data-sync.service';
 import { WalletService } from './core/services/wallet.service';
 import { ToastService } from './core/services/toast.service';
+import { VoiceInputService } from './core/services/voice-input.service';
 import { TransactionFormModalComponent } from './shared/components/transaction-form-modal.component';
 import { VndPipe } from './shared/pipes/vnd.pipe';
 
@@ -186,15 +195,23 @@ import { VndPipe } from './shared/pipes/vnd.pipe';
             <span class="mt-0.5">Thu / Chi</span>
           </a>
 
-          <!-- CENTER FLOATING '+' SQUISHY BUTTON -->
+          <!-- CENTER FLOATING '+' SQUISHY BUTTON (Tap = Quick Expense, Hold = Live Voice Overlay -> Release opens Modal) -->
           <div class="flex items-center justify-center relative -top-5">
             <button
               type="button"
-              (click)="dataSync.openQuickAdd('EXPENSE')"
-              class="w-15 h-15 rounded-full bg-[#FFB020] active:bg-[#FF8FAB] border-3 border-[#2D2A32] shadow-[0_5px_0_#2D2A32] active:translate-y-1 active:shadow-none flex items-center justify-center text-3xl font-display font-extrabold text-[#2D2A32] transition-all cursor-pointer"
-              aria-label="Thêm giao dịch nhanh"
+              (pointerdown)="onPlusButtonPointerDown($event)"
+              (click)="onPlusButtonClick($event)"
+              (contextmenu)="$event.preventDefault()"
+              class="w-15 h-15 rounded-full border-3 border-[#2D2A32] shadow-[0_5px_0_#2D2A32] active:translate-y-1 active:shadow-none flex items-center justify-center text-3xl font-display font-extrabold text-[#2D2A32] transition-all cursor-pointer select-none touch-none"
+              [ngClass]="
+                liveVoiceOverlayOpen() || holdingPlusBtn()
+                  ? 'bg-[#FF5C6C] text-white scale-110 animate-pulse'
+                  : 'bg-[#FFB020] active:bg-[#FF8FAB]'
+              "
+              aria-label="Bấm để thêm khoản chi • Nhấn giữ để thu âm nhập nhanh"
+              title="Bấm: Thêm khoản chi • Nhấn giữ: Thu âm trực tiếp, thả tay mở sổ 🎙️"
             >
-              ＋
+              {{ liveVoiceOverlayOpen() ? '🎙️' : '＋' }}
             </button>
           </div>
 
@@ -220,23 +237,115 @@ import { VndPipe } from './shared/pipes/vnd.pipe';
         </div>
       </nav>
 
+      <!-- LIVE VOICE OVERLAY POPUP (Hiện khi đang nhấn giữ nút '+', làm mờ phần còn lại, chạy chữ trực tiếp) -->
+      @if (liveVoiceOverlayOpen()) {
+        <div
+          class="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-[#2D2A32]/70 backdrop-blur-md select-none"
+        >
+          <div
+            class="toy-card-lg w-full max-w-md p-6 bg-[#FFFDF5] text-center space-y-4 animate-in fade-in zoom-in-95 duration-150"
+          >
+            <!-- Top Badge -->
+            <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#FFE4E6] border-2 border-[#2D2A32] text-[#BE123C] font-display font-extrabold text-xs">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#FF5C6C] animate-ping"></span>
+              <span>ĐANG THU ÂM KHOẢN CHI NHANH</span>
+            </div>
+
+            <!-- Pulsing Microphone Toy Icon -->
+            <div class="flex justify-center">
+              <div
+                class="w-20 h-20 rounded-full bg-[#FF5C6C] text-white border-3 border-[#2D2A32] shadow-[0_4px_0_#2D2A32] flex items-center justify-center text-4xl animate-pulse"
+              >
+                🎙️
+              </div>
+            </div>
+
+            <!-- Live Running Transcript Box -->
+            <div class="p-4 rounded-2xl bg-white border-2 border-[#2D2A32] shadow-[0_3px_0_#2D2A32] min-h-24 flex flex-col items-center justify-center">
+              @if (liveVoiceTranscript()) {
+                <p class="font-display font-extrabold text-xl sm:text-2xl text-[#2D2A32] leading-snug break-words">
+                  “{{ liveVoiceTranscript() }}”
+                </p>
+              } @else {
+                <p class="font-display font-bold text-sm sm:text-base text-[#2D2A32]/55">
+                  Hãy nói tên món + số tiền...
+                </p>
+                <p class="text-xs font-bold text-[#2D2A32]/45 mt-1">
+                  VD: "Ăn phở bò 55 nghìn", "Bỉm sữa Shopee 250k"
+                </p>
+              }
+            </div>
+
+            <!-- Real-time Parsed Preview Pills -->
+            <div class="grid grid-cols-2 gap-2.5 text-left">
+              <div class="p-2.5 rounded-xl bg-[#FFF9EC] border-2 border-[#2D2A32]">
+                <div class="text-[10px] font-extrabold uppercase text-[#2D2A32]/60">
+                  🛒 Mua gì
+                </div>
+                <div class="font-display font-extrabold text-sm text-[#2D2A32] truncate mt-0.5">
+                  {{ liveVoiceParsed().title || 'Đang chờ...' }}
+                </div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-[#FFE4E6]/60 border-2 border-[#2D2A32]">
+                <div class="text-[10px] font-extrabold uppercase text-[#2D2A32]/60">
+                  💸 Số tiền
+                </div>
+                <div class="money-num font-extrabold text-sm text-[#BE123C] truncate mt-0.5">
+                  {{ liveVoiceParsed().amount ? (liveVoiceParsed().amount | vnd) : '0 ₫' }}
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-1">
+              <div class="text-xs font-extrabold text-[#2D2A32]/75">
+                ✨ Thả tay ra để mở sổ chi tiêu với thông tin trên
+              </div>
+              <button
+                type="button"
+                (click)="finishLiveVoiceAndOpenModal()"
+                class="mt-2 px-4 py-1.5 rounded-xl border-2 border-[#2D2A32] bg-[#FFB020] text-[#2D2A32] font-display font-extrabold text-xs cursor-pointer"
+              >
+                ✅ Mở form ngay
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
       <!-- Global Quick Add Transaction Modal -->
       <app-transaction-form-modal
         [isOpen]="dataSync.quickTransactionModalOpen()"
         [defaultType]="dataSync.quickTransactionDefaultType()"
+        [voicePrefill]="dataSync.quickTransactionVoicePrefill()"
         [editTransaction]="null"
         (closed)="dataSync.closeQuickAdd()"
       />
     </div>
   `,
 })
-export class MainLayoutComponent implements OnInit {
+export class MainLayoutComponent implements OnInit, OnDestroy {
   readonly familyService = inject(FamilyService);
   readonly authService = inject(AuthService);
   readonly dataSync = inject(DataSyncService);
   readonly walletService = inject(WalletService);
+  private readonly voiceInput = inject(VoiceInputService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
+
+  readonly holdingPlusBtn = signal<boolean>(false);
+  readonly liveVoiceOverlayOpen = signal<boolean>(false);
+  readonly liveVoiceTranscript = signal<string>('');
+  readonly liveVoiceParsed = computed(() =>
+    this.voiceInput.parseSmartVoiceTransaction(this.liveVoiceTranscript())
+  );
+
+  private holdTimer: ReturnType<typeof setTimeout> | null = null;
+  private finalizeTimer: ReturnType<typeof setTimeout> | null = null;
+  private longPressTriggered = false;
+  private isFinishingVoice = false;
+
+  private readonly boundGlobalRelease = () => this.onGlobalPointerRelease();
 
   readonly navItems = [
     { route: '/dashboard', label: 'Bảng điều khiển', emoji: '📊' },
@@ -270,6 +379,120 @@ export class MainLayoutComponent implements OnInit {
     }
     if (!this.dataSync.initialLoaded()) {
       await this.dataSync.loadAllFamilyData();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.clearHoldTimer();
+    this.removeGlobalReleaseListeners();
+  }
+
+  onPlusButtonPointerDown(_event: PointerEvent): void {
+    this.clearHoldTimer();
+    this.longPressTriggered = false;
+    this.isFinishingVoice = false;
+    this.holdingPlusBtn.set(true);
+    this.attachGlobalReleaseListeners();
+
+    // Hold ~650ms opens the Live Voice Overlay Popup (without opening the form modal yet)
+    this.holdTimer = setTimeout(() => {
+      this.longPressTriggered = true;
+      this.holdingPlusBtn.set(false);
+      this.startLiveVoiceOverlay();
+    }, 650);
+  }
+
+  private startLiveVoiceOverlay(): void {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(45);
+    }
+    this.liveVoiceTranscript.set('');
+    this.liveVoiceOverlayOpen.set(true);
+    this.cdr.detectChanges();
+
+    const started = this.voiceInput.startListening({
+      onTranscript: (text) => {
+        this.liveVoiceTranscript.set(text);
+        this.cdr.detectChanges();
+      },
+      onError: (msg) => {
+        this.toast.show('warning', 'Micro thông báo 🎙️', msg);
+      },
+    });
+
+    if (!started) {
+      this.liveVoiceOverlayOpen.set(false);
+      this.removeGlobalReleaseListeners();
+      this.dataSync.openQuickAdd('EXPENSE');
+      this.cdr.detectChanges();
+    }
+  }
+
+  private onGlobalPointerRelease(): void {
+    this.clearHoldTimer();
+    this.holdingPlusBtn.set(false);
+    this.removeGlobalReleaseListeners();
+
+    if (this.longPressTriggered && this.liveVoiceOverlayOpen()) {
+      this.finishLiveVoiceAndOpenModal();
+    }
+  }
+
+  finishLiveVoiceAndOpenModal(): void {
+    if (this.isFinishingVoice) return;
+    this.isFinishingVoice = true;
+    this.removeGlobalReleaseListeners();
+
+    // Wait 320ms grace buffer to capture the last spoken syllable after finger release
+    this.voiceInput.stopListening(250);
+    if (this.finalizeTimer) clearTimeout(this.finalizeTimer);
+    this.finalizeTimer = setTimeout(() => {
+      const parsed = this.liveVoiceParsed();
+      this.liveVoiceOverlayOpen.set(false);
+      this.isFinishingVoice = false;
+      this.dataSync.openQuickAdd(
+        'EXPENSE',
+        parsed.rawText ? parsed : null
+      );
+      this.cdr.detectChanges();
+    }, 320);
+  }
+
+  onPlusButtonClick(event: MouseEvent): void {
+    if (this.longPressTriggered) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.longPressTriggered = false;
+      return;
+    }
+    this.dataSync.openQuickAdd('EXPENSE', null);
+  }
+
+  private attachGlobalReleaseListeners(): void {
+    if (typeof window === 'undefined') return;
+    this.removeGlobalReleaseListeners();
+    window.addEventListener('pointerup', this.boundGlobalRelease);
+    window.addEventListener('pointercancel', this.boundGlobalRelease);
+    window.addEventListener('touchend', this.boundGlobalRelease);
+    window.addEventListener('touchcancel', this.boundGlobalRelease);
+  }
+
+  private removeGlobalReleaseListeners(): void {
+    if (typeof window === 'undefined') return;
+    window.removeEventListener('pointerup', this.boundGlobalRelease);
+    window.removeEventListener('pointercancel', this.boundGlobalRelease);
+    window.removeEventListener('touchend', this.boundGlobalRelease);
+    window.removeEventListener('touchcancel', this.boundGlobalRelease);
+  }
+
+  private clearHoldTimer(): void {
+    if (this.holdTimer) {
+      clearTimeout(this.holdTimer);
+      this.holdTimer = null;
+    }
+    if (this.finalizeTimer) {
+      clearTimeout(this.finalizeTimer);
+      this.finalizeTimer = null;
     }
   }
 

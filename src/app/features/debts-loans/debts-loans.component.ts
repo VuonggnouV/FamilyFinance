@@ -1,4 +1,11 @@
-import { Component, ChangeDetectorRef, inject, signal, computed } from '@angular/core';
+import {
+  Component,
+  ChangeDetectorRef,
+  OnDestroy,
+  inject,
+  signal,
+  computed,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -10,11 +17,12 @@ import { DebtLoanService } from '../../core/services/debt-loan.service';
 import { WalletService } from '../../core/services/wallet.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfettiService } from '../../core/services/confetti.service';
+import { VoiceInputService } from '../../core/services/voice-input.service';
 import {
   VndPipe,
   formatVndInput,
   parseVndInput,
-  appendThreeZeros,
+  getMoneySuggestions,
 } from '../../shared/pipes/vnd.pipe';
 
 @Component({
@@ -44,18 +52,25 @@ import {
 
         <button
           type="button"
-          (click)="openCreateModal()"
-          class="toy-btn px-5 py-3 text-sm font-extrabold"
+          (pointerdown)="onCreateBtnPointerDown($event)"
+          (click)="onCreateBtnClick($event)"
+          (contextmenu)="$event.preventDefault()"
+          class="toy-btn px-5 py-3 text-sm font-extrabold select-none touch-none transition-all"
           [ngClass]="
-            activeTab() === 'LEND'
-              ? 'bg-[#FFB020] text-[#2D2A32]'
-              : 'bg-[#9B6BFF] text-white'
+            liveVoiceOverlayOpen() || holdingCreateBtn()
+              ? 'bg-[#FF5C6C] text-white scale-105 animate-pulse'
+              : activeTab() === 'LEND'
+                ? 'bg-[#FFB020] text-[#2D2A32]'
+                : 'bg-[#9B6BFF] text-white'
           "
+          title="Bấm: Mở sổ • Nhấn giữ: Thu âm trực tiếp, thả tay mở sổ 🎙️"
         >
           {{
-            activeTab() === 'LEND'
-              ? '+ Ghi khoản Cho Mượn mới 🤝'
-              : '+ Ghi khoản Nợ mới 🏦'
+            liveVoiceOverlayOpen()
+              ? '🎙️ Đang nghe...'
+              : activeTab() === 'LEND'
+                ? '+ Ghi khoản Cho Mượn mới 🤝'
+                : '+ Ghi khoản Nợ mới 🏦'
           }}
         </button>
       </div>
@@ -323,34 +338,49 @@ import {
                 <label class="block text-xs font-extrabold uppercase text-[#2D2A32]/75 mb-1">
                   Số tiền gốc (VND) *
                 </label>
-                <input
-                  type="text"
-                  inputmode="numeric"
-                  name="principalDisplay"
-                  [ngModel]="principalDisplay()"
-                  (ngModelChange)="principalDisplay.set(formatVnd($event))"
-                  placeholder="0"
-                  required
-                  class="toy-input money-num text-2xl font-extrabold bg-white"
-                />
-                <div class="flex flex-wrap items-center gap-1.5 mt-2">
-                  <button
-                    type="button"
-                    (click)="onAppendZerosPrincipal()"
-                    class="px-3 py-1 text-xs font-extrabold rounded-xl border-2 border-[#2D2A32] bg-[#FFB020] hover:bg-[#FFA000] text-[#2D2A32] shadow-[0_2px_0_#2D2A32] cursor-pointer money-num"
-                  >
-                    .000 (×1000)
-                  </button>
-                  @for (preset of [500000, 1000000, 5000000]; track preset) {
-                    <button
-                      type="button"
-                      (click)="addQuickPrincipal(preset)"
-                      class="px-2.5 py-1 text-xs font-extrabold rounded-xl border border-[#2D2A32] bg-white hover:bg-[#FEF3C7] cursor-pointer money-num"
-                    >
-                      +{{ preset | vnd: false }}
-                    </button>
-                  }
+                <div class="relative">
+                  <input
+                    type="text"
+                    inputmode="numeric"
+                    name="principalDisplay"
+                    [ngModel]="principalDisplay()"
+                    (ngModelChange)="onPrincipalInput($event)"
+                    placeholder="0"
+                    required
+                    class="toy-input money-num text-2xl font-extrabold bg-white pr-24"
+                  />
+                  <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                    @if (principalDisplay()) {
+                      <button
+                        type="button"
+                        (mousedown)="$event.preventDefault()"
+                        (click)="clearPrincipalAmount()"
+                        class="px-2.5 py-1 text-xs font-extrabold rounded-xl border-2 border-[#2D2A32] bg-[#FFE4E6] hover:bg-[#FF5C6C] text-[#BE123C] hover:text-white shadow-[0_2px_0_#2D2A32] active:translate-y-0.5 cursor-pointer transition-colors"
+                        title="Xóa số tiền vừa nhập"
+                      >
+                        ✕ Xóa
+                      </button>
+                    } @else {
+                      <span class="font-display font-extrabold text-sm text-[#2D2A32]/60">
+                        VNĐ
+                      </span>
+                    }
+                  </div>
                 </div>
+                @if (principalSuggestions().length > 0) {
+                  <div class="grid grid-cols-3 gap-2 mt-2">
+                    @for (sug of principalSuggestions(); track sug.raw) {
+                      <button
+                        type="button"
+                        (mousedown)="$event.preventDefault()"
+                        (click)="applyPrincipalSuggestion(sug.display)"
+                        class="py-1.5 px-2 text-xs font-extrabold rounded-xl border-2 border-[#2D2A32] bg-[#FEF3C7] hover:bg-[#FFB020] text-[#2D2A32] shadow-[0_2px_0_#2D2A32] active:translate-y-0.5 cursor-pointer money-num text-center truncate transition-colors"
+                      >
+                        {{ sug.display }} ₫
+                      </button>
+                    }
+                  </div>
+                }
               </div>
 
               <div>
@@ -525,25 +555,49 @@ import {
                     ⚡ Trả hết phần còn lại
                   </button>
                 </div>
-                <input
-                  type="text"
-                  inputmode="numeric"
-                  name="repayAmountDisplay"
-                  [ngModel]="repayAmountDisplay()"
-                  (ngModelChange)="repayAmountDisplay.set(formatVnd($event))"
-                  placeholder="0"
-                  required
-                  class="toy-input money-num text-2xl font-extrabold text-[#15803D] bg-white"
-                />
-                <div class="flex flex-wrap items-center gap-1.5 mt-2">
-                  <button
-                    type="button"
-                    (click)="onAppendZerosRepay()"
-                    class="px-3 py-1 text-xs font-extrabold rounded-xl border-2 border-[#2D2A32] bg-[#FFB020] hover:bg-[#FFA000] text-[#2D2A32] shadow-[0_2px_0_#2D2A32] cursor-pointer money-num"
-                  >
-                    .000 (×1000)
-                  </button>
+                <div class="relative">
+                  <input
+                    type="text"
+                    inputmode="numeric"
+                    name="repayAmountDisplay"
+                    [ngModel]="repayAmountDisplay()"
+                    (ngModelChange)="onRepayAmountInput($event)"
+                    placeholder="0"
+                    required
+                    class="toy-input money-num text-2xl font-extrabold text-[#15803D] bg-white pr-24"
+                  />
+                  <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                    @if (repayAmountDisplay()) {
+                      <button
+                        type="button"
+                        (mousedown)="$event.preventDefault()"
+                        (click)="clearRepayAmount()"
+                        class="px-2.5 py-1 text-xs font-extrabold rounded-xl border-2 border-[#2D2A32] bg-[#FFE4E6] hover:bg-[#FF5C6C] text-[#BE123C] hover:text-white shadow-[0_2px_0_#2D2A32] active:translate-y-0.5 cursor-pointer transition-colors"
+                        title="Xóa số tiền vừa nhập"
+                      >
+                        ✕ Xóa
+                      </button>
+                    } @else {
+                      <span class="font-display font-extrabold text-sm text-[#2D2A32]/60">
+                        VNĐ
+                      </span>
+                    }
+                  </div>
                 </div>
+                @if (repaySuggestions().length > 0) {
+                  <div class="grid grid-cols-3 gap-2 mt-2">
+                    @for (sug of repaySuggestions(); track sug.raw) {
+                      <button
+                        type="button"
+                        (mousedown)="$event.preventDefault()"
+                        (click)="applyRepaySuggestion(sug.display)"
+                        class="py-1.5 px-2 text-xs font-extrabold rounded-xl border-2 border-[#2D2A32] bg-[#FEF3C7] hover:bg-[#FFB020] text-[#2D2A32] shadow-[0_2px_0_#2D2A32] active:translate-y-0.5 cursor-pointer money-num text-center truncate transition-colors"
+                      >
+                        {{ sug.display }} ₫
+                      </button>
+                    }
+                  </div>
+                }
               </div>
 
               <div>
@@ -699,18 +753,129 @@ import {
           </div>
         </div>
       }
+
+      <!-- LIVE VOICE OVERLAY POPUP CHO NÚT GHI KHOẢN CHO MƯỢN MỚI & GHI KHOẢN NỢ MỚI -->
+      @if (liveVoiceOverlayOpen()) {
+        <div
+          class="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-[#2D2A32]/70 backdrop-blur-md select-none"
+        >
+          <div
+            class="toy-card-lg w-full max-w-md p-6 bg-[#FFFDF5] text-center space-y-4 animate-in fade-in zoom-in-95 duration-150"
+          >
+            <!-- Top Badge -->
+            <div
+              class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border-2 border-[#2D2A32] font-display font-extrabold text-xs"
+              [ngClass]="
+                activeTab() === 'LEND'
+                  ? 'bg-[#FEF3C7] text-[#B45309]'
+                  : 'bg-[#EDE9FE] text-[#6D28D9]'
+              "
+            >
+              <span class="w-2.5 h-2.5 rounded-full bg-[#FF5C6C] animate-ping"></span>
+              <span>
+                {{
+                  activeTab() === 'LEND'
+                    ? 'ĐANG THU ÂM KHOẢN CHO MƯỢN MỚI 🤝'
+                    : 'ĐANG THU ÂM KHOẢN VAY / NỢ MỚI 🏦'
+                }}
+              </span>
+            </div>
+
+            <!-- Pulsing Microphone Toy Icon -->
+            <div class="flex justify-center">
+              <div
+                class="w-20 h-20 rounded-full bg-[#FF5C6C] text-white border-3 border-[#2D2A32] shadow-[0_4px_0_#2D2A32] flex items-center justify-center text-4xl animate-pulse"
+              >
+                🎙️
+              </div>
+            </div>
+
+            <!-- Live Running Transcript Box -->
+            <div class="p-4 rounded-2xl bg-white border-2 border-[#2D2A32] shadow-[0_3px_0_#2D2A32] min-h-24 flex flex-col items-center justify-center">
+              @if (liveVoiceTranscript()) {
+                <p class="font-display font-extrabold text-xl sm:text-2xl text-[#2D2A32] leading-snug break-words">
+                  “{{ liveVoiceTranscript() }}”
+                </p>
+              } @else {
+                <p class="font-display font-bold text-sm sm:text-base text-[#2D2A32]/55">
+                  {{
+                    activeTab() === 'LEND'
+                      ? 'Hãy nói tên người mượn + số tiền...'
+                      : 'Hãy nói tên chủ nợ / ngân hàng + số tiền...'
+                  }}
+                </p>
+                <p class="text-xs font-bold text-[#2D2A32]/45 mt-1">
+                  {{
+                    activeTab() === 'LEND'
+                      ? 'VD: "Cho bạn Tuấn mượn 2 triệu", "Em gái 500 nghìn"'
+                      : 'VD: "Nợ anh Hùng 5 triệu", "Thẻ tín dụng VPBank 3 triệu rưỡi"'
+                  }}
+                </p>
+              }
+            </div>
+
+            <!-- Real-time Parsed Preview Pills -->
+            <div class="grid grid-cols-2 gap-2.5 text-left">
+              <div class="p-2.5 rounded-xl bg-[#FFF9EC] border-2 border-[#2D2A32]">
+                <div class="text-[10px] font-extrabold uppercase text-[#2D2A32]/60">
+                  👤 {{ activeTab() === 'LEND' ? 'Cho ai mượn' : 'Nợ ai' }}
+                </div>
+                <div class="font-display font-extrabold text-sm text-[#2D2A32] truncate mt-0.5">
+                  {{ liveVoiceParsed().counterparty || 'Đang chờ...' }}
+                </div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-[#FFE4E6]/60 border-2 border-[#2D2A32]">
+                <div class="text-[10px] font-extrabold uppercase text-[#2D2A32]/60">
+                  💰 Số tiền gốc
+                </div>
+                <div class="money-num font-extrabold text-sm text-[#BE123C] truncate mt-0.5">
+                  {{ liveVoiceParsed().amount ? (liveVoiceParsed().amount | vnd) : '0 ₫' }}
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-1">
+              <div class="text-xs font-extrabold text-[#2D2A32]/75">
+                ✨ Thả tay ra để mở sổ điền sẵn thông tin trên
+              </div>
+              <button
+                type="button"
+                (click)="finishLiveVoiceAndOpenModal()"
+                class="mt-2 px-4 py-1.5 rounded-xl border-2 border-[#2D2A32] bg-[#FFB020] text-[#2D2A32] font-display font-extrabold text-xs cursor-pointer"
+              >
+                ✅ Mở sổ ngay
+              </button>
+            </div>
+          </div>
+        </div>
+      }
     </div>
   `,
 })
-export class DebtsLoansComponent {
+export class DebtsLoansComponent implements OnDestroy {
   readonly debtLoanService = inject(DebtLoanService);
   readonly walletService = inject(WalletService);
+  private readonly voiceInput = inject(VoiceInputService);
   private readonly toast = inject(ToastService);
   private readonly confetti = inject(ConfettiService);
   private readonly cdr = inject(ChangeDetectorRef);
 
   readonly ownerMeta = OWNER_SCOPE_META;
   readonly activeTab = signal<DebtLoanType>('LEND');
+
+  // Live Voice Overlay State for "+ Ghi khoản Cho Mượn mới" & "+ Ghi khoản Nợ mới"
+  readonly holdingCreateBtn = signal<boolean>(false);
+  readonly liveVoiceOverlayOpen = signal<boolean>(false);
+  readonly liveVoiceTranscript = signal<string>('');
+  readonly liveVoiceParsed = computed(() =>
+    this.voiceInput.parseSmartDebtLoan(this.liveVoiceTranscript())
+  );
+
+  private holdTimer: ReturnType<typeof setTimeout> | null = null;
+  private finalizeTimer: ReturnType<typeof setTimeout> | null = null;
+  private longPressTriggered = false;
+  private isFinishingVoice = false;
+  private readonly boundGlobalRelease = () => this.onGlobalPointerRelease();
 
   readonly currentItems = computed(() =>
     this.activeTab() === 'LEND'
@@ -724,6 +889,7 @@ export class DebtsLoansComponent {
   readonly editingItem = signal<DebtLoan | null>(null);
   readonly counterparty = signal<string>('');
   readonly principalDisplay = signal<string>('');
+  readonly showPrincipalSuggestions = signal<boolean>(true);
   readonly walletId = signal<string>('');
   readonly affectsBalance = signal<boolean>(true);
   readonly transactionDate = signal<string>(this.todayIso());
@@ -736,6 +902,7 @@ export class DebtsLoansComponent {
   readonly repaymentModalOpen = signal<boolean>(false);
   readonly repayingItem = signal<DebtLoan | null>(null);
   readonly repayAmountDisplay = signal<string>('');
+  readonly showRepaySuggestions = signal<boolean>(false);
   readonly repayWalletId = signal<string>('');
   readonly repayDate = signal<string>(this.todayIso());
   readonly repayNote = signal<string>('');
@@ -745,27 +912,48 @@ export class DebtsLoansComponent {
   readonly historyDrawerOpen = signal<boolean>(false);
   readonly historyItem = signal<DebtLoan | null>(null);
 
+  readonly principalSuggestions = computed(() => {
+    if (!this.showPrincipalSuggestions()) return [];
+    return getMoneySuggestions(this.principalDisplay());
+  });
+
+  readonly repaySuggestions = computed(() => {
+    if (!this.showRepaySuggestions()) return [];
+    return getMoneySuggestions(this.repayAmountDisplay());
+  });
+
   formatVnd(val: string): string {
     return formatVndInput(val);
   }
 
-  onAppendZerosPrincipal(): void {
-    const next = appendThreeZeros(this.principalDisplay());
-    if (next) {
-      this.principalDisplay.set(next);
-    }
+  onPrincipalInput(val: string): void {
+    this.showPrincipalSuggestions.set(true);
+    this.principalDisplay.set(formatVndInput(val));
   }
 
-  addQuickPrincipal(preset: number): void {
-    const cur = parseVndInput(this.principalDisplay());
-    this.principalDisplay.set(formatVndInput(cur + preset));
+  applyPrincipalSuggestion(display: string): void {
+    this.principalDisplay.set(display);
+    this.showPrincipalSuggestions.set(false);
   }
 
-  onAppendZerosRepay(): void {
-    const next = appendThreeZeros(this.repayAmountDisplay());
-    if (next) {
-      this.repayAmountDisplay.set(next);
-    }
+  clearPrincipalAmount(): void {
+    this.principalDisplay.set('');
+    this.showPrincipalSuggestions.set(true);
+  }
+
+  onRepayAmountInput(val: string): void {
+    this.showRepaySuggestions.set(true);
+    this.repayAmountDisplay.set(formatVndInput(val));
+  }
+
+  applyRepaySuggestion(display: string): void {
+    this.repayAmountDisplay.set(display);
+    this.showRepaySuggestions.set(false);
+  }
+
+  clearRepayAmount(): void {
+    this.repayAmountDisplay.set('');
+    this.showRepaySuggestions.set(true);
   }
 
   getWalletNameWithOwner(walletId: string): string {
@@ -797,13 +985,132 @@ export class DebtsLoansComponent {
     return item.due_date < today;
   }
 
-  openCreateModal(): void {
+  ngOnDestroy(): void {
+    this.clearHoldTimer();
+    this.removeGlobalReleaseListeners();
+  }
+
+  onCreateBtnPointerDown(_event: PointerEvent): void {
+    this.clearHoldTimer();
+    this.longPressTriggered = false;
+    this.isFinishingVoice = false;
+    this.holdingCreateBtn.set(true);
+    this.attachGlobalReleaseListeners();
+
+    this.holdTimer = setTimeout(() => {
+      this.longPressTriggered = true;
+      this.holdingCreateBtn.set(false);
+      this.startLiveVoiceOverlay();
+    }, 650);
+  }
+
+  private startLiveVoiceOverlay(): void {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(45);
+    }
+    this.liveVoiceTranscript.set('');
+    this.liveVoiceOverlayOpen.set(true);
+    this.cdr.detectChanges();
+
+    const started = this.voiceInput.startListening({
+      onTranscript: (text) => {
+        this.liveVoiceTranscript.set(text);
+        this.cdr.detectChanges();
+      },
+      onError: (msg) => {
+        this.toast.show('warning', 'Micro thông báo 🎙️', msg);
+      },
+    });
+
+    if (!started) {
+      this.liveVoiceOverlayOpen.set(false);
+      this.removeGlobalReleaseListeners();
+      this.openCreateModal();
+      this.cdr.detectChanges();
+    }
+  }
+
+  private onGlobalPointerRelease(): void {
+    this.clearHoldTimer();
+    this.holdingCreateBtn.set(false);
+    this.removeGlobalReleaseListeners();
+
+    if (this.longPressTriggered && this.liveVoiceOverlayOpen()) {
+      this.finishLiveVoiceAndOpenModal();
+    }
+  }
+
+  finishLiveVoiceAndOpenModal(): void {
+    if (this.isFinishingVoice) return;
+    this.isFinishingVoice = true;
+    this.removeGlobalReleaseListeners();
+
+    this.voiceInput.stopListening(250);
+    if (this.finalizeTimer) clearTimeout(this.finalizeTimer);
+    this.finalizeTimer = setTimeout(() => {
+      const parsed = this.liveVoiceParsed();
+      this.liveVoiceOverlayOpen.set(false);
+      this.isFinishingVoice = false;
+      this.openCreateModal(parsed.rawText ? parsed : undefined);
+      this.cdr.detectChanges();
+    }, 320);
+  }
+
+  onCreateBtnClick(event: MouseEvent): void {
+    if (this.longPressTriggered) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.longPressTriggered = false;
+      return;
+    }
+    this.openCreateModal();
+  }
+
+  private attachGlobalReleaseListeners(): void {
+    if (typeof window === 'undefined') return;
+    this.removeGlobalReleaseListeners();
+    window.addEventListener('pointerup', this.boundGlobalRelease);
+    window.addEventListener('pointercancel', this.boundGlobalRelease);
+    window.addEventListener('touchend', this.boundGlobalRelease);
+    window.addEventListener('touchcancel', this.boundGlobalRelease);
+  }
+
+  private removeGlobalReleaseListeners(): void {
+    if (typeof window === 'undefined') return;
+    window.removeEventListener('pointerup', this.boundGlobalRelease);
+    window.removeEventListener('pointercancel', this.boundGlobalRelease);
+    window.removeEventListener('touchend', this.boundGlobalRelease);
+    window.removeEventListener('touchcancel', this.boundGlobalRelease);
+  }
+
+  private clearHoldTimer(): void {
+    if (this.holdTimer) {
+      clearTimeout(this.holdTimer);
+      this.holdTimer = null;
+    }
+    if (this.finalizeTimer) {
+      clearTimeout(this.finalizeTimer);
+      this.finalizeTimer = null;
+    }
+  }
+
+  openCreateModal(voicePrefill?: {
+    counterparty: string;
+    amount: number | null;
+    rawText: string;
+  }): void {
     this.submitting.set(false);
     this.savedDone.set(false);
     this.editingItem.set(null);
     this.formType.set(this.activeTab());
-    this.counterparty.set('');
-    this.principalDisplay.set('');
+    this.counterparty.set(voicePrefill?.counterparty ?? '');
+    if (voicePrefill?.amount && voicePrefill.amount > 0) {
+      this.principalDisplay.set(formatVndInput(voicePrefill.amount));
+      this.showPrincipalSuggestions.set(false);
+    } else {
+      this.principalDisplay.set('');
+      this.showPrincipalSuggestions.set(true);
+    }
     const firstW = this.walletService.activeWallets()[0];
     this.walletId.set(firstW?.id ?? '');
     this.affectsBalance.set(true);
