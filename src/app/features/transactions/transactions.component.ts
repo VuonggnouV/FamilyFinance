@@ -26,50 +26,45 @@ import { VndPipe } from '../../shared/pipes/vnd.pipe';
   ],
   template: `
     <div class="space-y-7 sm:space-y-8">
-      <!-- Page Header & Quick Action Buttons -->
+      <!-- Page Header & Balanced 3-Button Grid -->
       <div class="toy-card-lg p-5 sm:p-6 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div class="flex items-center gap-3">
           <div
-            class="w-14 h-14 rounded-2xl bg-[#FFB020] border-2 border-[#2D2A32] shadow-[0_4px_0_#2D2A32] flex items-center justify-center text-3xl shrink-0"
+            class="w-12 h-12 rounded-2xl bg-[#FFB020] border-2 border-[#2D2A32] shadow-[0_3px_0_#2D2A32] flex items-center justify-center text-2xl shrink-0"
           >
             📒
           </div>
-          <div>
-            <h1 class="font-display font-extrabold text-2xl sm:text-3xl text-[#2D2A32]">
-              Sổ Thu Chi & Chuyển Ví
-            </h1>
-            <p class="text-xs sm:text-sm font-bold text-[#2D2A32]/75">
-              Quản lý từng đồng ra vào két sắt, hỗ trợ trả hàng Shopee/Lazada & hoàn tác 10 giây
-            </p>
-          </div>
+          <h1 class="font-display font-extrabold text-xl sm:text-3xl text-[#2D2A32]">
+            Sổ Thu Chi & Chuyển Ví
+          </h1>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 w-full sm:w-auto">
           <button
             type="button"
             (click)="openCreateModal('INCOME')"
-            class="toy-btn px-4 py-2.5 bg-[#22C55E] text-white text-sm font-extrabold"
+            class="toy-btn py-2.5 px-3 bg-[#22C55E] text-white text-xs sm:text-sm font-extrabold whitespace-nowrap"
           >
             + Ting ting lúa về
           </button>
           <button
             type="button"
             (click)="openCreateModal('EXPENSE')"
-            class="toy-btn px-4 py-2.5 bg-[#FF5C6C] text-white text-sm font-extrabold"
+            class="toy-btn py-2.5 px-3 bg-[#FF5C6C] text-white text-xs sm:text-sm font-extrabold whitespace-nowrap"
           >
             - Lại chốt đơn
           </button>
           <button
             type="button"
             (click)="openCreateModal('TRANSFER')"
-            class="toy-btn px-3.5 py-2.5 bg-[#38BDF8] text-[#2D2A32] text-sm font-extrabold"
+            class="toy-btn col-span-2 sm:col-span-1 py-2.5 px-3 bg-[#38BDF8] text-[#2D2A32] text-xs sm:text-sm font-extrabold whitespace-nowrap"
           >
             ⇄ Chuyển ví
           </button>
         </div>
       </div>
 
-      <!-- Collapsible Filter Bar (Default Closed, Click to Open) -->
+      <!-- Collapsible Filter Bar (Rút gọn còn chữ "Bộ lọc", mặc định Đóng) -->
       <div class="toy-card-lg bg-white overflow-hidden">
         <div
           (click)="filterOpen.set(!filterOpen())"
@@ -77,23 +72,22 @@ import { VndPipe } from '../../shared/pipes/vnd.pipe';
           [class.border-b-2]="filterOpen()"
           [class.border-[#2D2A32]]="filterOpen()"
         >
-          <div class="flex items-center gap-2.5">
-            <span class="text-2xl">🔍</span>
-            <div>
-              <h2 class="font-display font-extrabold text-lg sm:text-xl text-[#2D2A32]">
-                Bộ Lọc Tìm Kiếm Giao Dịch
-              </h2>
-              <p class="text-xs font-bold text-[#2D2A32]/70">
-                Bấm vào thanh này để mở bộ lọc theo từ khóa, loại, ví hoặc danh mục
-              </p>
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 rounded-2xl bg-[#FEF3C7] border-2 border-[#2D2A32] shadow-[0_2px_0_#2D2A32] flex items-center justify-center text-xl shrink-0"
+            >
+              🔍
             </div>
+            <h2 class="font-display font-extrabold text-lg sm:text-xl text-[#2D2A32] whitespace-nowrap">
+              Bộ lọc
+            </h2>
           </div>
 
           <button
             type="button"
             class="toy-btn px-3.5 py-1.5 bg-white text-xs font-extrabold shrink-0"
           >
-            {{ filterOpen() ? 'Thu gọn ▲' : 'Mở bộ lọc ▼' }}
+            {{ filterOpen() ? 'Thu gọn ▲' : 'Mở ▼' }}
           </button>
         </div>
 
@@ -189,31 +183,32 @@ import { VndPipe } from '../../shared/pipes/vnd.pipe';
       </div>
 
       <!-- ======================================================================= -->
-      <!-- COLLAPSIBLE TRANSACTION HISTORY FRAME (KHUNG LỊCH SỬ GIAO DỊCH ĐÓNG/MỞ) -->
+      <!-- COLLAPSIBLE TRANSACTION HISTORY FRAME (RÚT GỌN CÒN "LỊCH SỬ GIAO DỊCH")  -->
       <!-- ======================================================================= -->
       <div class="toy-card-lg bg-white overflow-hidden">
         <!-- Collapsible Header Bar -->
         <div
           (click)="historyOpen.set(!historyOpen())"
-          class="p-4 sm:p-5 bg-[#FFF9EC] border-b-2 border-[#2D2A32] flex items-center justify-between gap-3 cursor-pointer select-none hover:bg-[#FEF3C7]/60 transition-colors"
+          class="p-4 sm:p-5 bg-[#FFF9EC] flex items-center justify-between gap-3 cursor-pointer select-none hover:bg-[#FEF3C7]/60 transition-colors"
+          [class.border-b-2]="historyOpen()"
+          [class.border-[#2D2A32]]="historyOpen()"
         >
-          <div class="flex items-center gap-2.5">
-            <span class="text-2xl">📜</span>
-            <div>
-              <h2 class="font-display font-extrabold text-lg sm:text-xl text-[#2D2A32]">
-                Khung Lịch Sử Giao Dịch ({{ filteredTransactions().length }} khoản)
-              </h2>
-              <p class="text-xs font-bold text-[#2D2A32]/70">
-                Bấm vào thanh này để đóng / mở danh sách lịch sử thu chi
-              </p>
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 rounded-2xl bg-[#FFE4E6] border-2 border-[#2D2A32] shadow-[0_2px_0_#2D2A32] flex items-center justify-center text-xl shrink-0"
+            >
+              📜
             </div>
+            <h2 class="font-display font-extrabold text-lg sm:text-xl text-[#2D2A32] whitespace-nowrap">
+              Lịch sử giao dịch ({{ filteredTransactions().length }})
+            </h2>
           </div>
 
           <button
             type="button"
             class="toy-btn px-3.5 py-1.5 bg-white text-xs font-extrabold shrink-0"
           >
-            {{ historyOpen() ? 'Thu gọn ▲' : 'Mở rộng ▼' }}
+            {{ historyOpen() ? 'Thu gọn ▲' : 'Mở ▼' }}
           </button>
         </div>
 
@@ -285,7 +280,7 @@ import { VndPipe } from '../../shared/pipes/vnd.pipe';
                       }
                     </td>
 
-                    <!-- Số tiền -->
+                    <!-- Số tiền + Số dư sau giao dịch -->
                     <td class="py-3.5 px-4 whitespace-nowrap text-right">
                       <div
                         class="money-num font-extrabold text-lg"
@@ -306,6 +301,12 @@ import { VndPipe } from '../../shared/pipes/vnd.pipe';
                       @if (tx.status === 'RETURNED') {
                         <div class="text-xs font-extrabold text-[#15803D] money-num">
                           Gốc: {{ tx.amount | vnd }} • Đã hoàn: +{{ (tx.refunded_amount ?? tx.amount) | vnd }}
+                        </div>
+                      }
+
+                      @if (transactionService.getRunningBalanceAfter(tx.id) !== null) {
+                        <div class="text-[11px] font-bold text-[#2D2A32]/50 money-num mt-0.5">
+                          Số dư: {{ transactionService.getRunningBalanceAfter(tx.id) | vnd }}
                         </div>
                       }
                     </td>
@@ -460,6 +461,11 @@ import { VndPipe } from '../../shared/pipes/vnd.pipe';
                         Gốc: {{ tx.amount | vnd }} • Hoàn: +{{ (tx.refunded_amount ?? tx.amount) | vnd }}
                       </div>
                     }
+                    @if (transactionService.getRunningBalanceAfter(tx.id) !== null) {
+                      <div class="text-[11px] font-bold text-[#2D2A32]/50 money-num mt-0.5">
+                        Số dư: {{ transactionService.getRunningBalanceAfter(tx.id) | vnd }}
+                      </div>
+                    }
                   </div>
                 </div>
 
@@ -560,6 +566,7 @@ export class TransactionsComponent {
     this.appliedType.set(this.draftType());
     this.appliedWalletId.set(this.draftWalletId());
     this.appliedCategoryId.set(this.draftCategoryId());
+    this.historyOpen.set(true);
   }
 
   resetFilters(): void {

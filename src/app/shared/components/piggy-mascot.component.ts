@@ -26,36 +26,36 @@ interface MascotLine {
 const MOOD_QUOTES: Record<PiggyMood, MascotLine[]> = {
   RICH: [
     {
-      emoji: '😎💎💸',
-      badge: 'Đỉnh của chóp • Giàu nứt đố đổ vách',
+      emoji: '😎',
+      badge: 'ĐẠI GIA ĐỈNH NÓC',
       quote: 'Đỉnh nóc kịch trần! Tháng này giàu nứt đố đổ vách!',
       subtext:
         'Hai vợ chồng giữ phong độ này là chẳng mấy chốc tậu thêm biệt phủ, sổ đỏ cầm mỏi tay nha! 🏰✨',
     },
     {
-      emoji: '🐷👑💰',
-      badge: 'Đại gia ngầm • Két sắt căng phồng',
+      emoji: '👑',
+      badge: 'KÉT SẮT CĂNG PHỒNG',
       quote: 'Tiền vô như nước sông Đà, heo đất ăn no căng rốn luôn rồi!',
       subtext:
-        'Tỉ lệ tiết kiệm quá khủng! Cuối tuần tự thưởng 1 bữa lẩu thật ngon nha 2 vợ chồng ơi! 🍲🥂',
+        'Tỉ lệ tiết kiệm quá khủng! Cuối tuần tự thưởng một bữa lẩu thật ngon nha hai vợ chồng ơi! 🍲🥂',
     },
     {
-      emoji: '🦖🐱🚀',
-      badge: 'Vợ chồng hợp sức • Tài chính bay cao',
+      emoji: '🚀',
+      badge: 'TÀI CHÍNH BAY CAO',
       quote: 'Thuận vợ thuận chồng, tát biển Đông cũng đầy két sắt!',
       subtext:
-        'Tháng này quản lý tiền khéo số 1! Heo đất xin ngả mũ bái phục Nóc Nhà và Trụ Cột! 🎩💖',
+        'Tháng này quản lý tiền khéo số một! Heo đất xin ngả mũ bái phục Nóc Nhà và Trụ Cột! 🎩💖',
     },
     {
-      emoji: '🕶️💵🔥',
-      badge: 'Thần Tài gõ cửa • Lúa về ngập kho',
+      emoji: '💎',
+      badge: 'LÚA VỀ NGẬP KHO',
       quote: 'Ting ting liên hoàn cước! Ví dày thế này đi đâu cũng tự tin!',
       subtext:
-        'Nhớ trích một phần bỏ heo dài hạn để tiền đẻ ra tiền nha hai đại gia! 📈💎',
+        'Nhớ trích một phần bỏ heo dài hạn để tiền đẻ ra tiền nha hai đại gia! 📈💰',
     },
     {
-      emoji: '🥳🏆✨',
-      badge: 'Huy chương vàng tiết kiệm • Quá xuất sắc',
+      emoji: '🏆',
+      badge: 'VÔ ĐỊCH TIẾT KIỆM',
       quote: 'Ai độ mà tháng này giữ tiền giỏi dữ vậy trời?!',
       subtext:
         'Cứ đà này cuối năm nhìn lại số dư là cười tít mắt cả ngày luôn đó! 😍🎉',
@@ -63,36 +63,36 @@ const MOOD_QUOTES: Record<PiggyMood, MascotLine[]> = {
   ],
   SHOPPING_SPREE: [
     {
-      emoji: '🛍️📦💦',
-      badge: 'Bão chốt đơn hôm nay • Shipper gọi cháy máy',
+      emoji: '🛍️',
+      badge: 'BÃO CHỐT ĐƠN',
       quote: 'Alo alo! Hôm nay chốt đơn hơi bị đều tay rồi đó nha!',
       subtext:
-        'Tổng tháng vẫn ổn nhưng hôm nay ví hơi bị đau bụng rồi đó! Phanh nhẹ tay kẻo sàn cam trao bằng khen! 🚓🛒',
+        'Tổng tháng vẫn ổn nhưng hôm nay ví hơi đau bụng rồi đó! Phanh nhẹ tay kẻo sàn cam trao bằng khen! 🚓🛒',
     },
     {
-      emoji: '📦🏃‍♂️💸',
-      badge: 'Tín đồ săn sale • Tay nhanh hơn não',
+      emoji: '📦',
+      badge: 'TÍN ĐỒ SĂN SALE',
       quote: 'Nghe tiếng xé bọc hàng rột rột từ sáng tới giờ luôn á!',
       subtext:
-        'Mua gì mà vui dữ vậy hai vợ chồng? Nhớ kiểm tra đơn nào không ưng thì bấm "Trả hàng ↩️" liền nha! 🛒✨',
+        'Mua gì mà vui dữ vậy hai vợ chồng? Nhớ kiểm tra đơn nào không ưng thì bấm Trả hàng liền nha! 🛒✨',
     },
     {
-      emoji: '💳🔥😅',
-      badge: 'Thẻ quẹt tóe lửa • Hôm nay tiêu hơi sung',
+      emoji: '💳',
+      badge: 'THẺ QUẸT TÓE LỬA',
       quote: 'Hôm nay thần giữ của đi vắng hay sao mà tiền bay vèo vèo thế!',
       subtext:
         'Ngày mai khâu túi lại một xíu cho heo đất thở oxy với nha hai bạn trẻ ơi! 🐷🫧',
     },
     {
-      emoji: '🛒🚨👀',
-      badge: 'Radar soi ví • Hôm nay nhiều đơn mới',
+      emoji: '🛒',
+      badge: 'SHIPPER GỌI CHÁY MÁY',
       quote: 'Shipper vừa hỏi thăm: "Nhà mình mở đại lý nhận hàng hả anh chị?"',
       subtext:
         'May mà lúa tháng này vẫn gánh được, nhưng nhớ bớt lướt livestream đêm khuya lại nha! 📱🌙',
     },
     {
-      emoji: '🎁💸🤭',
-      badge: 'Chốt đơn thần tốc • Ví rung bần bật',
+      emoji: '🎁',
+      badge: 'CHỐT ĐƠN THẦN TỐC',
       quote: 'Mỗi lần điện thoại sáng đèn là heo đất lại giật mình thon thót!',
       subtext:
         'Thôi lỡ mua rồi thì dùng cho sướng, từ mai chuyển sang chế độ tu tâm dưỡng ví nhé! 🧘‍♂️💖',
@@ -100,29 +100,29 @@ const MOOD_QUOTES: Record<PiggyMood, MascotLine[]> = {
   ],
   CHILL: [
     {
-      emoji: '🧋✨🐷',
-      badge: 'An toàn ấm êm • Vẫn trong tầm kiểm soát',
+      emoji: '🧋',
+      badge: 'AN TOÀN ẤM ÊM',
       quote: 'Tạm ổn nha, nhớ bớt lướt sàn cam lại chút xíu là đẹp!',
       subtext:
         'Thu vẫn lớn hơn Chi! Ráng tích lũy thêm chút nữa để heo đất được đeo kính râm nào! 😎💪',
     },
     {
-      emoji: '🍵😌🌿',
-      badge: 'Nhịp độ vừa phải • Sổ sách gọn gàng',
-      quote: 'Tháng này chi tiêu khá điềm đạm, xứng đáng 1 ly trà sữa ít đường!',
+      emoji: '🍵',
+      badge: 'SỔ SÁCH GỌN GÀNG',
+      quote: 'Tháng này chi tiêu khá điềm đạm, xứng đáng một ly trà sữa ít đường!',
       subtext:
         'Cứ ghi chép đều tay mỗi ngày thế này là không bao giờ sợ thất thoát tiền lẻ đâu nha! 📒✅',
     },
     {
-      emoji: '🐱🐶💖',
-      badge: 'Đồng tâm hiệp lực • Thu vẫn thắng Chi',
+      emoji: '💖',
+      badge: 'THU VẪN THẮNG CHI',
       quote: 'Hai vợ chồng phối hợp nhịp nhàng phết! Tiền vào vẫn nhiều hơn tiền ra!',
       subtext:
         'Giữ vững phong độ tới cuối tháng là có dư một khoản kha khá bỏ ống rồi! 🏡🌾',
     },
     {
-      emoji: '🎈🐷🎵',
-      badge: 'Tài chính cân bằng • Heo đất yêu đời',
+      emoji: '🎵',
+      badge: 'TÀI CHÍNH CÂN BẰNG',
       quote: 'Không giàu đột biến nhưng cũng chẳng thiếu thốn gì, chill phết!',
       subtext:
         'Cắt bớt vài khoản lặt vặt không cần thiết nữa là nhảy lên hạng Đại Gia ngay! 🚀✨',
@@ -130,22 +130,22 @@ const MOOD_QUOTES: Record<PiggyMood, MascotLine[]> = {
   ],
   TIGHT: [
     {
-      emoji: '🍜🥚⚠️',
-      badge: 'Cảnh báo vàng • Chi tiêu sát nút Thu nhập',
+      emoji: '🍜',
+      badge: 'CẢNH BÁO MÌ TÔM',
       quote: 'Ối dồi ôi! Tiền Chi sắp đuổi kịp tiền Thu tới nơi rồi kìa!',
       subtext:
         'Từ giờ tới cuối tháng chuyển sang chế độ ăn cơm nhà, khóa app mua sắm khẩn cấp nha! 🔒🍱',
     },
     {
-      emoji: '⏳💸😬',
-      badge: 'Thắt lưng buộc bụng • Ranh giới mong manh',
+      emoji: '⚠️',
+      badge: 'THẮT LƯNG BUỘC BỤNG',
       quote: 'Ví đang mỏng như tờ giấy A4 rồi, thở mạnh cũng sợ bay mất tiền!',
       subtext:
         'Trước khi xuống tiền mua món gì nhớ hỏi nhau câu thần chú: "Có thực sự cần không?" nha! 🤔💡',
     },
     {
-      emoji: '🥫🍳🐷',
-      badge: 'Chế độ tiết kiệm khẩn • Giữ chặt hầu bao',
+      emoji: '🥚',
+      badge: 'GIỮ CHẶT HẦU BAO',
       quote: 'Heo đất đang phải hóp bụng lại rồi đó hai vợ chồng ơi!',
       subtext:
         'Đợi đợt "Ting ting lúa về" tiếp theo cứu viện thôi nào! 🌾🆘',
@@ -153,30 +153,30 @@ const MOOD_QUOTES: Record<PiggyMood, MascotLine[]> = {
   ],
   BROKE: [
     {
-      emoji: '😭💸🪰',
-      badge: 'Báo động đỏ • Chi vượt Thu mất rồi',
+      emoji: '😭',
+      badge: 'BÁO ĐỘNG ĐỎ',
       quote:
         'Báo động đỏ! Chuẩn bị thực đơn mì tôm trứng thôi hai vợ chồng ơi!',
       subtext:
         'Mở ví ra thấy con ruồi bay ra kêu vo ve rồi! Kiểm tra lại các khoản mua sắm hoặc đòi nợ gấp nhé! 🚨🔔',
     },
     {
-      emoji: '🚑💳😱',
-      badge: 'Cấp cứu két sắt • Thủng đáy hầu bao',
+      emoji: '🚑',
+      badge: 'CẤP CỨU KÉT SẮT',
       quote: 'Toang thật rồi Buồn ơi! Tháng này tiêu lố tay quá đà rồi!',
       subtext:
         'Xem có đơn nào hoàn tiền được hoặc khoản Cho mượn nào tới hạn đòi về đắp vào ngay đi nào! 🤝↩️',
     },
     {
-      emoji: '🌧️🐷🍂',
-      badge: 'Heo đất suy dinh dưỡng • Âm dòng tiền',
+      emoji: '🌧️',
+      badge: 'ÂM DÒNG TIỀN RỒI',
       quote: 'Ngoài trời mưa rơi hay nước mắt heo đất đang rơi vậy nè...',
       subtext:
         'Không sao, vấp ngã ở đâu mình đứng lên kiếm lúa bù lại ở đó! Cố lên hai vợ chồng! 💪🌾',
     },
     {
-      emoji: '🆘🍜📉',
-      badge: 'Đèn đỏ chớp tắt • Tạm ngưng chốt đơn',
+      emoji: '🆘',
+      badge: 'NGƯNG CHỐT ĐƠN NGAY',
       quote: 'Khóa thẻ! Xóa giỏ hàng! Tắt thông báo Shopee ngay và luôn!',
       subtext:
         'Tháng này âm ngân sách rồi, cùng nhau siết lại chi tiêu để tháng sau phục thù nha! 🛡️🔥',
@@ -184,22 +184,22 @@ const MOOD_QUOTES: Record<PiggyMood, MascotLine[]> = {
   ],
   SLEEPY: [
     {
-      emoji: '💤🫧🐷',
-      badge: 'Sổ mới tinh tươm • Chưa có giao dịch',
+      emoji: '💤',
+      badge: 'SỔ MỚI TINH TƯƠM',
       quote: 'Sổ sạch bong kin kít, kỳ này nhà mình chưa tốn xu nào!',
       subtext:
         'Bấm "+ Ting ting lúa về" hoặc "- Lại chốt đơn" để đánh thức heo đất dậy ghi sổ nhé! 📒✨',
     },
     {
-      emoji: '🛌🌙✨',
-      badge: 'Heo đất đang ngủ nướng • Bình yên quá đỗi',
+      emoji: '🛌',
+      badge: 'HEO ĐANG NGỦ NƯỚNG',
       quote: 'Khò khò... Không ai tiêu tiền là giấc ngủ ngon nhất trần đời!',
       subtext:
         'Khi nào có lương về nhớ gọi heo dậy đầu tiên để bắn pháo giấy ăn mừng nha! 🎉🌾',
     },
     {
-      emoji: '🧘‍♂️🍃🐷',
-      badge: 'Tịnh tâm giữ ví • 0 đồng phát sinh',
+      emoji: '🍃',
+      badge: '0 ĐỒNG PHÁT SINH',
       quote: 'Một ngày không tiêu tiền là một ngày ví mỉm cười hạnh phúc!',
       subtext:
         'Chạm vào nút + bên dưới bất cứ lúc nào bạn cần ghi chép thu chi nhé! 💖',
@@ -222,238 +222,213 @@ const MOOD_QUOTES: Record<PiggyMood, MascotLine[]> = {
         'bg-gradient-to-br from-[#FFF9EC] via-[#FFFDF5] to-[#EDE9FE]': mood === 'SLEEPY'
       }"
     >
-      <!-- Floating Animated Background Decor Stickers -->
-      <div class="pointer-events-none select-none absolute right-3 top-2 text-xl opacity-35 animate-float">
-        {{ currentLine().emoji }}
-      </div>
+      <!-- Top-Right Corner Dice Button (Clean, out of the text flow!) -->
+      <button
+        type="button"
+        (click)="nextRandomQuote()"
+        class="absolute top-3.5 right-3.5 z-10 inline-flex items-center gap-1 px-3 py-1.5 rounded-full border-2 border-[#2D2A32] bg-white hover:bg-[#FEF3C7] active:translate-y-0.5 font-display font-extrabold text-xs text-[#2D2A32] cursor-pointer shadow-[0_2px_0_#2D2A32]"
+        title="Đổi câu thoại & hiệu ứng khác"
+      >
+        <span>🎲</span>
+        <span>Đổi câu</span>
+      </button>
 
-      <div class="flex flex-col sm:flex-row items-center gap-5">
-        <!-- Animated Interactive SVG Piggy Mascot (Click to Jelly-Pop & Randomize!) -->
+      <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+        <!-- Avatar Column: Animated SVG Mascot + Overlapping 1-Line Sticker Badge -->
         <div
           (click)="nextRandomQuote()"
           title="Chạm vào Heo Đất để xem hiệu ứng & phán câu khác!"
-          class="w-32 h-32 sm:w-36 sm:h-36 shrink-0 select-none cursor-pointer relative"
+          class="flex flex-col items-center shrink-0 select-none cursor-pointer"
           [class.animate-jelly-pop]="popping()"
         >
-          @switch (mood) {
-            @case ('RICH') {
-              <!-- Heo Đại Gia Nhún Nhảy Disco + Đồng Xu Rơi Vào Lưng + Kim Cương Bay 😎💎💸 -->
-              <svg viewBox="0 0 140 140" class="w-full h-full animate-piggy-dance">
-                <circle cx="70" cy="72" r="56" fill="#FEF3C7" stroke="#2D2A32" stroke-width="3" stroke-dasharray="6 4"/>
-                <!-- Falling Gold Coin into Piggy Slot (Animated) -->
-                <g class="animate-coin-drop">
-                  <circle cx="70" cy="16" r="9" fill="#FFB020" stroke="#2D2A32" stroke-width="2.5"/>
-                  <text x="66" y="20" font-size="11" font-weight="900" fill="#2D2A32">₫</text>
-                </g>
-                <!-- Ears -->
-                <path d="M35 44 L22 22 L48 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
-                <path d="M105 44 L118 22 L92 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
-                <!-- Head -->
-                <circle cx="70" cy="74" r="42" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4"/>
-                <!-- Coin Slot -->
-                <rect x="56" y="26" width="28" height="7" rx="3.5" fill="#2D2A32"/>
-                <!-- Cool Sunglasses 😎 -->
-                <path d="M32 60 H108" stroke="#2D2A32" stroke-width="4" stroke-linecap="round"/>
-                <rect x="38" y="54" width="26" height="17" rx="5" fill="#2D2A32"/>
-                <rect x="76" y="54" width="26" height="17" rx="5" fill="#2D2A32"/>
-                <path d="M43 58 L50 67" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round"/>
-                <path d="M81 58 L88 67" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round"/>
-                <!-- Snout -->
-                <ellipse cx="70" cy="80" rx="16" ry="11" fill="#FFB3C6" stroke="#2D2A32" stroke-width="3.5"/>
-                <circle cx="64" cy="80" r="3" fill="#2D2A32"/>
-                <circle cx="76" cy="80" r="3" fill="#2D2A32"/>
-                <!-- Confident Smile -->
-                <path d="M56 97 Q70 107 84 97" fill="none" stroke="#2D2A32" stroke-width="3.5" stroke-linecap="round"/>
-                <!-- Stack of VND Cash -->
-                <rect x="44" y="104" width="52" height="22" rx="6" fill="#22C55E" stroke="#2D2A32" stroke-width="3.5"/>
-                <rect x="64" y="104" width="12" height="22" fill="#FEF3C7" stroke="#2D2A32" stroke-width="3"/>
-                <text x="110" y="42" font-size="18" class="animate-float">💸</text>
-                <text x="10" y="96" font-size="18" class="animate-bell">💎</text>
-              </svg>
+          <div class="w-28 h-28 sm:w-32 sm:h-32 relative">
+            @switch (mood) {
+              @case ('RICH') {
+                <!-- Heo Đại Gia Nhún Nhảy Disco + Đồng Xu Rơi Vào Lưng + Kim Cương Bay 😎💎💸 -->
+                <svg viewBox="0 0 140 140" class="w-full h-full animate-piggy-dance">
+                  <circle cx="70" cy="72" r="56" fill="#FEF3C7" stroke="#2D2A32" stroke-width="3" stroke-dasharray="6 4"/>
+                  <g class="animate-coin-drop">
+                    <circle cx="70" cy="16" r="9" fill="#FFB020" stroke="#2D2A32" stroke-width="2.5"/>
+                    <text x="66" y="20" font-size="11" font-weight="900" fill="#2D2A32">₫</text>
+                  </g>
+                  <path d="M35 44 L22 22 L48 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
+                  <path d="M105 44 L118 22 L92 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
+                  <circle cx="70" cy="74" r="42" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4"/>
+                  <rect x="56" y="26" width="28" height="7" rx="3.5" fill="#2D2A32"/>
+                  <path d="M32 60 H108" stroke="#2D2A32" stroke-width="4" stroke-linecap="round"/>
+                  <rect x="38" y="54" width="26" height="17" rx="5" fill="#2D2A32"/>
+                  <rect x="76" y="54" width="26" height="17" rx="5" fill="#2D2A32"/>
+                  <path d="M43 58 L50 67" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round"/>
+                  <path d="M81 58 L88 67" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round"/>
+                  <ellipse cx="70" cy="80" rx="16" ry="11" fill="#FFB3C6" stroke="#2D2A32" stroke-width="3.5"/>
+                  <circle cx="64" cy="80" r="3" fill="#2D2A32"/>
+                  <circle cx="76" cy="80" r="3" fill="#2D2A32"/>
+                  <path d="M56 97 Q70 107 84 97" fill="none" stroke="#2D2A32" stroke-width="3.5" stroke-linecap="round"/>
+                  <rect x="44" y="104" width="52" height="22" rx="6" fill="#22C55E" stroke="#2D2A32" stroke-width="3.5"/>
+                  <rect x="64" y="104" width="12" height="22" fill="#FEF3C7" stroke="#2D2A32" stroke-width="3"/>
+                  <text x="110" y="42" font-size="18" class="animate-float">💸</text>
+                  <text x="10" y="96" font-size="18" class="animate-bell">💎</text>
+                </svg>
+              }
+
+              @case ('SHOPPING_SPREE') {
+                <!-- Heo Săn Sale Rung Lắc + Mồ Hôi Rơi + Thùng Hàng Nhảy Tưng Tưng 🛍️📦💦 -->
+                <svg viewBox="0 0 140 140" class="w-full h-full animate-piggy-dance">
+                  <circle cx="70" cy="72" r="56" fill="#FEF3C7" stroke="#2D2A32" stroke-width="3"/>
+                  <path d="M35 44 L22 22 L48 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
+                  <path d="M105 44 L118 22 L92 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
+                  <circle cx="70" cy="74" r="42" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4"/>
+                  <circle cx="49" cy="60" r="8.5" fill="#FFFFFF" stroke="#2D2A32" stroke-width="3.5"/>
+                  <circle cx="91" cy="60" r="8.5" fill="#FFFFFF" stroke="#2D2A32" stroke-width="3.5"/>
+                  <circle cx="49" cy="60" r="4" fill="#2D2A32"/>
+                  <circle cx="91" cy="60" r="4" fill="#2D2A32"/>
+                  <path
+                    class="animate-sweat-drop"
+                    d="M104 40 Q112 50 104 56 Q96 50 104 40 Z"
+                    fill="#38BDF8"
+                    stroke="#2D2A32"
+                    stroke-width="2.5"
+                  />
+                  <ellipse cx="70" cy="78" rx="15" ry="10" fill="#FFB3C6" stroke="#2D2A32" stroke-width="3.5"/>
+                  <circle cx="65" cy="78" r="2.5" fill="#2D2A32"/>
+                  <circle cx="75" cy="78" r="2.5" fill="#2D2A32"/>
+                  <g class="animate-float">
+                    <rect x="42" y="98" width="56" height="28" rx="5" fill="#FFB020" stroke="#2D2A32" stroke-width="3.5"/>
+                    <line x1="70" y1="98" x2="70" y2="126" stroke="#2D2A32" stroke-width="3"/>
+                  </g>
+                  <text x="108" y="40" font-size="18" class="animate-bell">🛍️</text>
+                  <text x="10" y="42" font-size="18" class="animate-float">📦</text>
+                </svg>
+              }
+
+              @case ('TIGHT') {
+                <!-- Heo Ôm Tô Mì Tôm Bốc Khói Nghi Ngút 🍜🥚💨 -->
+                <svg viewBox="0 0 140 140" class="w-full h-full animate-float">
+                  <circle cx="70" cy="72" r="56" fill="#FEF3C7" stroke="#2D2A32" stroke-width="3"/>
+                  <path d="M35 44 L24 24 L48 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
+                  <path d="M105 44 L116 24 L92 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
+                  <circle cx="70" cy="74" r="42" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4"/>
+                  <line x1="40" y1="52" x2="56" y2="56" stroke="#2D2A32" stroke-width="3.5" stroke-linecap="round"/>
+                  <line x1="100" y1="52" x2="84" y2="56" stroke="#2D2A32" stroke-width="3.5" stroke-linecap="round"/>
+                  <circle cx="49" cy="62" r="4" fill="#2D2A32"/>
+                  <circle cx="91" cy="62" r="4" fill="#2D2A32"/>
+                  <path
+                    class="animate-sweat-drop"
+                    d="M103 44 Q110 52 103 58 Q96 52 103 44 Z"
+                    fill="#38BDF8"
+                    stroke="#2D2A32"
+                    stroke-width="2"
+                  />
+                  <ellipse cx="70" cy="76" rx="15" ry="10" fill="#FFB3C6" stroke="#2D2A32" stroke-width="3.5"/>
+                  <circle cx="65" cy="76" r="2.5" fill="#2D2A32"/>
+                  <circle cx="75" cy="76" r="2.5" fill="#2D2A32"/>
+                  <path class="animate-steam-1" d="M58 98 Q54 90 60 84" fill="none" stroke="#2D2A32" stroke-width="2.5" stroke-linecap="round"/>
+                  <path class="animate-steam-2" d="M82 98 Q86 90 80 84" fill="none" stroke="#2D2A32" stroke-width="2.5" stroke-linecap="round"/>
+                  <path d="M44 102 H96 L88 124 H52 Z" fill="#FF5C6C" stroke="#2D2A32" stroke-width="3.5" stroke-linejoin="round"/>
+                  <text x="108" y="42" font-size="18" class="animate-bell">🍜</text>
+                  <text x="10" y="96" font-size="18">🥚</text>
+                </svg>
+              }
+
+              @case ('CHILL') {
+                <!-- Heo Hút Trà Sữa Trân Châu Chạy Lên Ống Hút 🧋✨ -->
+                <svg viewBox="0 0 140 140" class="w-full h-full animate-float">
+                  <circle cx="70" cy="72" r="56" fill="#E0F2FE" stroke="#2D2A32" stroke-width="3"/>
+                  <path d="M35 44 L24 24 L48 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
+                  <path d="M105 44 L116 24 L92 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
+                  <circle cx="70" cy="74" r="42" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4"/>
+                  <path d="M44 62 Q51 54 58 62" fill="none" stroke="#2D2A32" stroke-width="4" stroke-linecap="round"/>
+                  <path d="M82 62 Q89 54 96 62" fill="none" stroke="#2D2A32" stroke-width="4" stroke-linecap="round"/>
+                  <circle cx="42" cy="75" r="6" fill="#FF5C6C" opacity="0.5"/>
+                  <circle cx="98" cy="75" r="6" fill="#FF5C6C" opacity="0.5"/>
+                  <ellipse cx="70" cy="78" rx="15" ry="10.5" fill="#FFB3C6" stroke="#2D2A32" stroke-width="3.5"/>
+                  <circle cx="65" cy="78" r="2.8" fill="#2D2A32"/>
+                  <circle cx="75" cy="78" r="2.8" fill="#2D2A32"/>
+                  <circle cx="75" cy="96" r="4" fill="#2D2A32"/>
+                  <path d="M76 96 L94 84" stroke="#FF5C6C" stroke-width="4" stroke-linecap="round"/>
+                  <circle cx="90" cy="94" r="3" fill="#2D2A32" class="animate-boba-suck"/>
+                  <rect x="88" y="88" width="24" height="32" rx="6" fill="#FDE68A" stroke="#2D2A32" stroke-width="3.5"/>
+                  <path d="M85 88 H115" stroke="#2D2A32" stroke-width="4" stroke-linecap="round"/>
+                  <circle cx="95" cy="112" r="2.5" fill="#2D2A32"/>
+                  <circle cx="101" cy="114" r="2.5" fill="#2D2A32"/>
+                  <circle cx="106" cy="111" r="2.5" fill="#2D2A32"/>
+                  <text x="12" y="42" font-size="16" class="animate-zzz-1">🎵</text>
+                </svg>
+              }
+
+              @case ('BROKE') {
+                <!-- Heo Khóc Thác Nước Chảy Ròng Ròng + Con Ruồi Bay Vòng Quanh Ví Rỗng 😭💸🪰 -->
+                <svg viewBox="0 0 140 140" class="w-full h-full">
+                  <circle cx="70" cy="72" r="56" fill="#FFE4E6" stroke="#2D2A32" stroke-width="3"/>
+                  <path d="M35 48 L18 38 L45 36 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
+                  <path d="M105 48 L122 38 L95 36 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
+                  <circle cx="70" cy="74" r="42" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4"/>
+                  <path d="M46 65 V104" stroke="#E0F2FE" stroke-width="8" stroke-linecap="round"/>
+                  <path d="M94 65 V104" stroke="#E0F2FE" stroke-width="8" stroke-linecap="round"/>
+                  <path class="animate-tears-flow" d="M46 65 V104" stroke="#38BDF8" stroke-width="6" stroke-linecap="round"/>
+                  <path class="animate-tears-flow" d="M94 65 V104" stroke="#38BDF8" stroke-width="6" stroke-linecap="round"/>
+                  <circle cx="46" cy="60" r="4.5" fill="#2D2A32"/>
+                  <circle cx="94" cy="60" r="4.5" fill="#2D2A32"/>
+                  <ellipse cx="70" cy="77" rx="15" ry="10" fill="#FFB3C6" stroke="#2D2A32" stroke-width="3.5"/>
+                  <circle cx="65" cy="77" r="2.5" fill="#2D2A32"/>
+                  <circle cx="75" cy="77" r="2.5" fill="#2D2A32"/>
+                  <path d="M58 98 Q70 89 82 98" fill="none" stroke="#2D2A32" stroke-width="3.5" stroke-linecap="round"/>
+                  <rect x="50" y="105" width="40" height="20" rx="5" fill="#D4C5B9" stroke="#2D2A32" stroke-width="3"/>
+                  <path d="M88 100 Q98 85 112 90" fill="none" stroke="#2D2A32" stroke-width="2" stroke-dasharray="3 3"/>
+                  <g class="animate-fly-orbit">
+                    <circle cx="115" cy="88" r="3.5" fill="#2D2A32"/>
+                    <ellipse cx="113" cy="84" rx="3" ry="2" fill="#FFFFFF" stroke="#2D2A32" stroke-width="1.5"/>
+                    <ellipse cx="117" cy="84" rx="3" ry="2" fill="#FFFFFF" stroke="#2D2A32" stroke-width="1.5"/>
+                  </g>
+                </svg>
+              }
+
+              @default {
+                <!-- Heo Ngủ Khò Bong Bóng Mũi Phập Phồng & Chữ Zzz Bay Lên 💤🫧 -->
+                <svg viewBox="0 0 140 140" class="w-full h-full">
+                  <circle cx="70" cy="72" r="56" fill="#EDE9FE" stroke="#2D2A32" stroke-width="3"/>
+                  <path d="M35 44 L24 24 L48 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
+                  <path d="M105 44 L116 24 L92 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
+                  <circle cx="70" cy="76" r="42" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4"/>
+                  <path d="M43 62 Q50 69 57 62" fill="none" stroke="#2D2A32" stroke-width="3.5" stroke-linecap="round"/>
+                  <path d="M83 62 Q90 69 97 62" fill="none" stroke="#2D2A32" stroke-width="3.5" stroke-linecap="round"/>
+                  <ellipse cx="70" cy="80" rx="15" ry="10" fill="#FFB3C6" stroke="#2D2A32" stroke-width="3.5"/>
+                  <circle cx="65" cy="80" r="2.5" fill="#2D2A32"/>
+                  <circle cx="75" cy="80" r="2.5" fill="#2D2A32"/>
+                  <circle
+                    class="animate-snot-bubble"
+                    cx="96"
+                    cy="76"
+                    r="10"
+                    fill="#E0F2FE"
+                    stroke="#2D2A32"
+                    stroke-width="2.5"
+                  />
+                  <text x="95" y="42" class="animate-zzz-1" font-family="Baloo 2, cursive" font-weight="800" font-size="16" fill="#2D2A32">Zzz</text>
+                  <text x="104" y="32" class="animate-zzz-2" font-family="Baloo 2, cursive" font-weight="800" font-size="13" fill="#6D28D9">zZ</text>
+                </svg>
+              }
             }
-
-            @case ('SHOPPING_SPREE') {
-              <!-- Heo Săn Sale Rung Lắc + Mồ Hôi Rơi + Thùng Hàng Nhảy Tưng Tưng 🛍️📦💦 -->
-              <svg viewBox="0 0 140 140" class="w-full h-full animate-piggy-dance">
-                <circle cx="70" cy="72" r="56" fill="#FEF3C7" stroke="#2D2A32" stroke-width="3"/>
-                <path d="M35 44 L22 22 L48 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
-                <path d="M105 44 L118 22 L92 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
-                <circle cx="70" cy="74" r="42" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4"/>
-                <!-- Wide excited shopping eyes -->
-                <circle cx="49" cy="60" r="8.5" fill="#FFFFFF" stroke="#2D2A32" stroke-width="3.5"/>
-                <circle cx="91" cy="60" r="8.5" fill="#FFFFFF" stroke="#2D2A32" stroke-width="3.5"/>
-                <circle cx="49" cy="60" r="4" fill="#2D2A32"/>
-                <circle cx="91" cy="60" r="4" fill="#2D2A32"/>
-                <!-- Animated Falling Sweat Drop 💦 -->
-                <path
-                  class="animate-sweat-drop"
-                  d="M104 40 Q112 50 104 56 Q96 50 104 40 Z"
-                  fill="#38BDF8"
-                  stroke="#2D2A32"
-                  stroke-width="2.5"
-                />
-                <!-- Snout -->
-                <ellipse cx="70" cy="78" rx="15" ry="10" fill="#FFB3C6" stroke="#2D2A32" stroke-width="3.5"/>
-                <circle cx="65" cy="78" r="2.5" fill="#2D2A32"/>
-                <circle cx="75" cy="78" r="2.5" fill="#2D2A32"/>
-                <!-- Bouncing Shopee Parcel Box -->
-                <g class="animate-float">
-                  <rect x="42" y="98" width="56" height="28" rx="5" fill="#FFB020" stroke="#2D2A32" stroke-width="3.5"/>
-                  <line x1="70" y1="98" x2="70" y2="126" stroke="#2D2A32" stroke-width="3"/>
-                </g>
-                <text x="108" y="40" font-size="18" class="animate-bell">🛍️</text>
-                <text x="10" y="42" font-size="18" class="animate-float">📦</text>
-              </svg>
-            }
-
-            @case ('TIGHT') {
-              <!-- Heo Ôm Tô Mì Tôm Bốc Khói Nghi Ngút 🍜🥚💨 -->
-              <svg viewBox="0 0 140 140" class="w-full h-full animate-float">
-                <circle cx="70" cy="72" r="56" fill="#FEF3C7" stroke="#2D2A32" stroke-width="3"/>
-                <path d="M35 44 L24 24 L48 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
-                <path d="M105 44 L116 24 L92 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
-                <circle cx="70" cy="74" r="42" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4"/>
-                <!-- Worried eyebrows & eyes -->
-                <line x1="40" y1="52" x2="56" y2="56" stroke="#2D2A32" stroke-width="3.5" stroke-linecap="round"/>
-                <line x1="100" y1="52" x2="84" y2="56" stroke="#2D2A32" stroke-width="3.5" stroke-linecap="round"/>
-                <circle cx="49" cy="62" r="4" fill="#2D2A32"/>
-                <circle cx="91" cy="62" r="4" fill="#2D2A32"/>
-                <!-- Animated Sweat Drop -->
-                <path
-                  class="animate-sweat-drop"
-                  d="M103 44 Q110 52 103 58 Q96 52 103 44 Z"
-                  fill="#38BDF8"
-                  stroke="#2D2A32"
-                  stroke-width="2"
-                />
-                <!-- Snout -->
-                <ellipse cx="70" cy="76" rx="15" ry="10" fill="#FFB3C6" stroke="#2D2A32" stroke-width="3.5"/>
-                <circle cx="65" cy="76" r="2.5" fill="#2D2A32"/>
-                <circle cx="75" cy="76" r="2.5" fill="#2D2A32"/>
-                <!-- Animated Rising Hot Steam from Noodle Bowl -->
-                <path class="animate-steam-1" d="M58 98 Q54 90 60 84" fill="none" stroke="#2D2A32" stroke-width="2.5" stroke-linecap="round"/>
-                <path class="animate-steam-2" d="M82 98 Q86 90 80 84" fill="none" stroke="#2D2A32" stroke-width="2.5" stroke-linecap="round"/>
-                <!-- Noodle Bowl 🍜 -->
-                <path d="M44 102 H96 L88 124 H52 Z" fill="#FF5C6C" stroke="#2D2A32" stroke-width="3.5" stroke-linejoin="round"/>
-                <text x="108" y="42" font-size="18" class="animate-bell">🍜</text>
-                <text x="10" y="96" font-size="18">🥚</text>
-              </svg>
-            }
-
-            @case ('CHILL') {
-              <!-- Heo Hút Trà Sữa Trân Châu Chạy Lên Ống Hút 🧋✨ -->
-              <svg viewBox="0 0 140 140" class="w-full h-full animate-float">
-                <circle cx="70" cy="72" r="56" fill="#E0F2FE" stroke="#2D2A32" stroke-width="3"/>
-                <path d="M35 44 L24 24 L48 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
-                <path d="M105 44 L116 24 L92 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
-                <circle cx="70" cy="74" r="42" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4"/>
-                <path d="M44 62 Q51 54 58 62" fill="none" stroke="#2D2A32" stroke-width="4" stroke-linecap="round"/>
-                <path d="M82 62 Q89 54 96 62" fill="none" stroke="#2D2A32" stroke-width="4" stroke-linecap="round"/>
-                <circle cx="42" cy="75" r="6" fill="#FF5C6C" opacity="0.5"/>
-                <circle cx="98" cy="75" r="6" fill="#FF5C6C" opacity="0.5"/>
-                <ellipse cx="70" cy="78" rx="15" ry="10.5" fill="#FFB3C6" stroke="#2D2A32" stroke-width="3.5"/>
-                <circle cx="65" cy="78" r="2.8" fill="#2D2A32"/>
-                <circle cx="75" cy="78" r="2.8" fill="#2D2A32"/>
-                <circle cx="75" cy="96" r="4" fill="#2D2A32"/>
-                <!-- Straw & Animated Pearl Moving Up -->
-                <path d="M76 96 L94 84" stroke="#FF5C6C" stroke-width="4" stroke-linecap="round"/>
-                <circle cx="90" cy="94" r="3" fill="#2D2A32" class="animate-boba-suck"/>
-                <!-- Boba Cup -->
-                <rect x="88" y="88" width="24" height="32" rx="6" fill="#FDE68A" stroke="#2D2A32" stroke-width="3.5"/>
-                <path d="M85 88 H115" stroke="#2D2A32" stroke-width="4" stroke-linecap="round"/>
-                <circle cx="95" cy="112" r="2.5" fill="#2D2A32"/>
-                <circle cx="101" cy="114" r="2.5" fill="#2D2A32"/>
-                <circle cx="106" cy="111" r="2.5" fill="#2D2A32"/>
-                <text x="12" y="42" font-size="16" class="animate-zzz-1">🎵</text>
-              </svg>
-            }
-
-            @case ('BROKE') {
-              <!-- Heo Khóc Thác Nước Chảy Ròng Ròng + Con Ruồi Bay Vòng Quanh Ví Rỗng 😭💸🪰 -->
-              <svg viewBox="0 0 140 140" class="w-full h-full">
-                <circle cx="70" cy="72" r="56" fill="#FFE4E6" stroke="#2D2A32" stroke-width="3"/>
-                <path d="M35 48 L18 38 L45 36 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
-                <path d="M105 48 L122 38 L95 36 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
-                <circle cx="70" cy="74" r="42" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4"/>
-                <!-- Animated Flowing Waterfall Tears 😭 -->
-                <path d="M46 65 V104" stroke="#E0F2FE" stroke-width="8" stroke-linecap="round"/>
-                <path d="M94 65 V104" stroke="#E0F2FE" stroke-width="8" stroke-linecap="round"/>
-                <path class="animate-tears-flow" d="M46 65 V104" stroke="#38BDF8" stroke-width="6" stroke-linecap="round"/>
-                <path class="animate-tears-flow" d="M94 65 V104" stroke="#38BDF8" stroke-width="6" stroke-linecap="round"/>
-                <circle cx="46" cy="60" r="4.5" fill="#2D2A32"/>
-                <circle cx="94" cy="60" r="4.5" fill="#2D2A32"/>
-                <ellipse cx="70" cy="77" rx="15" ry="10" fill="#FFB3C6" stroke="#2D2A32" stroke-width="3.5"/>
-                <circle cx="65" cy="77" r="2.5" fill="#2D2A32"/>
-                <circle cx="75" cy="77" r="2.5" fill="#2D2A32"/>
-                <path d="M58 98 Q70 89 82 98" fill="none" stroke="#2D2A32" stroke-width="3.5" stroke-linecap="round"/>
-                <!-- Empty Wallet -->
-                <rect x="50" y="105" width="40" height="20" rx="5" fill="#D4C5B9" stroke="#2D2A32" stroke-width="3"/>
-                <path d="M88 100 Q98 85 112 90" fill="none" stroke="#2D2A32" stroke-width="2" stroke-dasharray="3 3"/>
-                <!-- Animated Orbiting Little Fly 🪰 -->
-                <g class="animate-fly-orbit">
-                  <circle cx="115" cy="88" r="3.5" fill="#2D2A32"/>
-                  <ellipse cx="113" cy="84" rx="3" ry="2" fill="#FFFFFF" stroke="#2D2A32" stroke-width="1.5"/>
-                  <ellipse cx="117" cy="84" rx="3" ry="2" fill="#FFFFFF" stroke="#2D2A32" stroke-width="1.5"/>
-                </g>
-              </svg>
-            }
-
-            @default {
-              <!-- Heo Ngủ Khò Bong Bóng Mũi Phập Phồng & Chữ Zzz Bay Lên 💤🫧 -->
-              <svg viewBox="0 0 140 140" class="w-full h-full">
-                <circle cx="70" cy="72" r="56" fill="#EDE9FE" stroke="#2D2A32" stroke-width="3"/>
-                <path d="M35 44 L24 24 L48 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
-                <path d="M105 44 L116 24 L92 34 Z" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4" stroke-linejoin="round"/>
-                <circle cx="70" cy="76" r="42" fill="#FF8FAB" stroke="#2D2A32" stroke-width="4"/>
-                <path d="M43 62 Q50 69 57 62" fill="none" stroke="#2D2A32" stroke-width="3.5" stroke-linecap="round"/>
-                <path d="M83 62 Q90 69 97 62" fill="none" stroke="#2D2A32" stroke-width="3.5" stroke-linecap="round"/>
-                <!-- Snout -->
-                <ellipse cx="70" cy="80" rx="15" ry="10" fill="#FFB3C6" stroke="#2D2A32" stroke-width="3.5"/>
-                <circle cx="65" cy="80" r="2.5" fill="#2D2A32"/>
-                <circle cx="75" cy="80" r="2.5" fill="#2D2A32"/>
-                <!-- Animated Breathing Snot Bubble 🫧 -->
-                <circle
-                  class="animate-snot-bubble"
-                  cx="96"
-                  cy="76"
-                  r="10"
-                  fill="#E0F2FE"
-                  stroke="#2D2A32"
-                  stroke-width="2.5"
-                />
-                <!-- Animated Floating Zzz -->
-                <text x="95" y="42" class="animate-zzz-1" font-family="Baloo 2, cursive" font-weight="800" font-size="16" fill="#2D2A32">Zzz</text>
-                <text x="104" y="32" class="animate-zzz-2" font-family="Baloo 2, cursive" font-weight="800" font-size="13" fill="#6D28D9">zZ</text>
-              </svg>
-            }
-          }
-        </div>
-
-        <!-- Speech Bubble & Status Badge -->
-        <div class="flex-1 text-center sm:text-left space-y-2.5">
-          <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-            <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border-2 border-[#2D2A32] bg-white shadow-[0_2px_0_#2D2A32]">
-              <span class="text-lg">{{ currentLine().emoji }}</span>
-              <span class="font-display font-extrabold text-xs uppercase tracking-wider text-[#2D2A32]">
-                {{ currentLine().badge }}
-              </span>
-            </div>
-
-            <button
-              type="button"
-              (click)="nextRandomQuote()"
-              class="px-3 py-1 rounded-full border-2 border-[#2D2A32] bg-[#FFF9EC] hover:bg-[#FEF3C7] active:translate-y-0.5 font-display font-extrabold text-xs text-[#2D2A32] cursor-pointer shadow-[0_2px_0_#2D2A32]"
-              title="Đổi câu thoại & hiệu ứng khác"
-            >
-              🎲 Phán câu khác
-            </button>
           </div>
 
-          <h2 class="font-display font-extrabold text-xl sm:text-2xl text-[#2D2A32] leading-snug">
+          <!-- Compact 1-Line Sticker Nameplate overlapping bottom of Piggy Avatar -->
+          <div
+            class="-mt-2 z-10 inline-flex items-center gap-1.5 px-3 py-1 rounded-full border-2 border-[#2D2A32] bg-white shadow-[0_2px_0_#2D2A32] whitespace-nowrap"
+          >
+            <span class="text-sm leading-none">{{ currentLine().emoji }}</span>
+            <span class="font-display font-extrabold text-[11px] uppercase tracking-wider text-[#2D2A32]">
+              {{ currentLine().badge }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Speech Bubble Quote & Subtext (text-balance prevents 1-word orphan lines!) -->
+        <div class="flex-1 text-center sm:text-left space-y-2">
+          <h2 class="font-display font-extrabold text-lg sm:text-2xl text-[#2D2A32] leading-snug text-balance">
             "{{ currentLine().quote }}"
           </h2>
 
-          <p class="text-xs sm:text-sm font-bold text-[#2D2A32]/75">
+          <p class="text-xs sm:text-sm font-bold text-[#2D2A32]/75 leading-relaxed text-pretty">
             {{ currentLine().subtext }}
           </p>
         </div>

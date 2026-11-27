@@ -37,6 +37,60 @@ export class TransactionService {
     return minDate.slice(0, 7) + '-01';
   });
 
+  /**
+   * Computes the exact wallet balance of `tx.wallet_id` immediately after each transaction,
+   * walking backward from the live `current_balance` of each wallet.
+   */
+  readonly runningBalanceByTxId = computed<Map<string, number>>(() => {
+    const wallets = this.walletService.walletsWithBalance();
+    const txs = this.transactions(); // already ordered newest -> oldest
+    const cursor = new Map<string, number>();
+
+    for (const w of wallets) {
+      cursor.set(w.id, Number(w.current_balance || 0));
+    }
+
+    const result = new Map<string, number>();
+
+    for (const tx of txs) {
+      const wId = tx.wallet_id;
+      const currentBal = cursor.get(wId) ?? 0;
+      // Record the balance of tx.wallet_id right after this transaction completed
+      result.set(tx.id, currentBal);
+
+      const amt = Number(tx.amount || 0);
+      if (tx.type === 'INCOME') {
+        // Reverse INCOME: before tx, balance was lower by amt
+        cursor.set(wId, currentBal - amt);
+      } else if (tx.type === 'EXPENSE') {
+        // If RETURNED, reverse the refund on refund_wallet_id first
+        if (tx.status === 'RETURNED') {
+          const refAmt = Number(tx.refunded_amount ?? amt);
+          const refWId = tx.refund_wallet_id || wId;
+          cursor.set(refWId, (cursor.get(refWId) ?? 0) - refAmt);
+        }
+        // Reverse EXPENSE: before tx, balance was higher by amt
+        cursor.set(wId, (cursor.get(wId) ?? 0) + amt);
+      } else if (tx.type === 'TRANSFER') {
+        // Reverse TRANSFER: before tx, source wallet had +amt and target wallet had -amt
+        cursor.set(wId, currentBal + amt);
+        if (tx.to_wallet_id) {
+          cursor.set(
+            tx.to_wallet_id,
+            (cursor.get(tx.to_wallet_id) ?? 0) - amt
+          );
+        }
+      }
+    }
+
+    return result;
+  });
+
+  getRunningBalanceAfter(txId: string): number | null {
+    const map = this.runningBalanceByTxId();
+    return map.has(txId) ? map.get(txId)! : null;
+  }
+
   async loadTransactions(): Promise<void> {
     const familyId = this.familyService.familyId();
     if (!familyId) return;
